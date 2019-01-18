@@ -5,6 +5,7 @@
 #include <Qt3DExtras>
 
 #include "sbmsettings.h"
+#include "qsectorplanemesh.h"
 
 class Node3DFootElement : public Qt3DCore::QEntity {
 public:
@@ -35,6 +36,7 @@ private:
     Qt3DCore::QEntity *vector;
     Qt3DExtras::QCylinderMesh *vectorMesh;
      Qt3DCore::QTransform *vectorTransform;
+     QSectorPlaneMesh *sector;
 
     Qt3DCore::QTransform *transform;
     QQuaternion rot;

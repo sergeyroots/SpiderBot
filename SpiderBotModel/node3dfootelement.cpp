@@ -5,6 +5,7 @@ Node3DFootElement::Node3DFootElement(sbmFootElement_t *element) :
             vector(new Qt3DCore::QEntity()),
             vectorMesh(new Qt3DExtras::QCylinderMesh()),
             vectorTransform(new Qt3DCore::QTransform()),
+            sector(new QSectorPlaneMesh()),
             transform(new Qt3DCore::QTransform()),
             modelMesh(new Qt3DRender::QMesh()),
             modelTransform(new Qt3DCore::QTransform()),
@@ -54,6 +55,18 @@ Node3DFootElement::Node3DFootElement(sbmFootElement_t *element) :
     //v2Transform->setTranslation(QVector3D(0,0,50));
     v2Transform->setRotationX(90);
     v2->addComponent(v2Transform);
+
+    //sector
+    Qt3DCore::QEntity *sec = new Qt3DCore::QEntity(vector);
+    sector->setRadius(50);
+    sector->setAngle(90);
+    sec->addComponent(sector);
+    Qt3DExtras::QPhongMaterial *secMaterial = new Qt3DExtras::QPhongMaterial();
+    secMaterial->setDiffuse(QColor("red"));
+    sec->addComponent(secMaterial);
+    Qt3DCore::QTransform *secTransform = new Qt3DCore::QTransform();
+    //secTransform->setRotationX(90);
+    sec->addComponent(secTransform);
 
     //transform segment
     rot = QQuaternion::fromAxisAndAngle(1.0f, 0.0f, 0.0f, element->rX) *

@@ -34,6 +34,7 @@ SOURCES += \
     node3dfootelement.cpp \
     node3dfoot.cpp \
     cmdpositionitem.cpp \
+	qsectorplanemesh.cpp \
     sbmcommandgenerator.cpp \
     footitem.cpp
 
@@ -47,6 +48,7 @@ HEADERS += \
     node3dfoot.h \
     testdata.h \
     cmdpositionitem.h \
+	qsectorplanemesh.h \
     sbmcommandgenerator.h \
     footitem.h
 
