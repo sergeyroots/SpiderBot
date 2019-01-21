@@ -12,6 +12,8 @@ class SbmViewer : public QWidget
 public:
     explicit SbmViewer(QWidget *parent = nullptr);
     void setSbmSettings(sbmSpiderBotSettings_t *settings);
+    void setActiveFoot(uint32_t footIndex);
+    void setFootAngles(uint32_t footIndex, float *angles);
 
 private:
     QWidget *container ;
@@ -25,6 +27,10 @@ private:
 
 public slots:
     void onClickNode3DFoot(Qt3DRender::QPickEvent *event);
+
+signals:
+    void onSelectFoot(int32_t footIndex);
+    void onChangeFootAngles(int32_t footIndex);
 };
 
 #endif // SBMVIEWER_H

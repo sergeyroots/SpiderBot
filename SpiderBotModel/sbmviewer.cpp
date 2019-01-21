@@ -1,6 +1,7 @@
 #include "sbmviewer.h"
 #include <QVBoxLayout>
 #include <Qt3DRender/QObjectPicker>
+#include "qsbmcameracontroller.h"
 
 SbmViewer::SbmViewer(QWidget *parent) : QWidget(parent) {
     node3DBody = nullptr;
@@ -30,7 +31,7 @@ SbmViewer::SbmViewer(QWidget *parent) : QWidget(parent) {
     camera->setProjectionType(Qt3DRender::QCameraLens::PerspectiveProjection);
     camera->setUpVector(QVector3D(.0f, .0f, 1.0f));
 
-    camera->setPosition(QVector3D(100, 300,  100.0f));
+    camera->setPosition(QVector3D(100, 600,  100.0f));
     camera->setViewCenter(QVector3D(0, 0, 0));
     //camera->rollAboutViewCenter(135);
 
@@ -40,7 +41,7 @@ SbmViewer::SbmViewer(QWidget *parent) : QWidget(parent) {
     light->setIntensity(1.f);
     lightEntity->addComponent(light);
 
-    Qt3DExtras::QOrbitCameraController *camController = new Qt3DExtras::QOrbitCameraController(rootEntity);
+    Qt3DExtras::QSbmCameraController *camController = new Qt3DExtras::QSbmCameraController(rootEntity);
     camController->setCamera(camera);
     camController->setLinearSpeed( 500.0f );
     camController->setLookSpeed( 100.0f );
@@ -87,10 +88,32 @@ void SbmViewer::setSbmSettings(sbmSpiderBotSettings_t *settings) {
     }
 }
 
-void SbmViewer::onClickNode3DFoot(Qt3DRender::QPickEvent *event) {
-    for (int i=0; i < footCount; ++i) {
-        node3DFoots[i]->setVectorEnabled(false);
+void SbmViewer::setActiveFoot(uint32_t footIndex) {
+    if (footIndex < footCount) {
+        for (int i=0; i < footCount; ++i) {
+            node3DFoots[i]->setVectorEnabled(false);
+        }
+        node3DFoots[footIndex]->setVectorEnabled(true);
     }
-    Node3DFoot *nodeFoot3D = (Node3DFoot*)sender()->parent();
-    nodeFoot3D->setVectorEnabled(true);
+}
+
+void SbmViewer::setFootAngles(uint32_t footIndex, float *angles) {
+    if (footIndex < footCount) {
+//        node3DFoots[footIndex]->
+    }
+}
+
+void SbmViewer::onClickNode3DFoot(Qt3DRender::QPickEvent *event) {
+    if (event->button() == Qt3DRender::QPickEvent::LeftButton) {
+        int32_t currentIndex = -1;
+        Node3DFoot *nodeFoot3D = (Node3DFoot*)sender()->parent();
+        for (int i=0; i < footCount; ++i) {
+            if (node3DFoots[i] == nodeFoot3D) {
+                currentIndex = i;
+            }
+            node3DFoots[i]->setVectorEnabled(false);
+        }
+        nodeFoot3D->setVectorEnabled(true);
+        emit onSelectFoot(currentIndex);
+    }
 }

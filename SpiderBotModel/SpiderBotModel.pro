@@ -36,7 +36,8 @@ SOURCES += \
     cmdpositionitem.cpp \
 	qsectorplanemesh.cpp \
     sbmcommandgenerator.cpp \
-    footitem.cpp
+    footitem.cpp \
+    qsbmcameracontroller.cpp
 
 HEADERS += \
         spbmainwindow.h \
@@ -50,7 +51,8 @@ HEADERS += \
     cmdpositionitem.h \
 	qsectorplanemesh.h \
     sbmcommandgenerator.h \
-    footitem.h
+    footitem.h \
+    qsbmcameracontroller.h
 
 FORMS += \
         spbmainwindow.ui \

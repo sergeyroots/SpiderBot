@@ -1,5 +1,6 @@
 ﻿#include "sbmfootviewer.h"
 #include "node3dfootelement.h"
+#include "qsbmcameracontroller.h"
 
 #include <QVBoxLayout>
 
@@ -33,7 +34,7 @@ SbmFootViewer::SbmFootViewer(QWidget *parent) : QWidget(parent) {
     light->setIntensity(1.f);
     lightEntity->addComponent(light);
 
-    Qt3DExtras::QOrbitCameraController *camController = new Qt3DExtras::QOrbitCameraController(rootEntity);
+    Qt3DExtras::QSbmCameraController *camController = new Qt3DExtras::QSbmCameraController(rootEntity);
     camController->setCamera(camera);
     camController->setLinearSpeed( 500.0f );
     camController->setLookSpeed( 100.0f );
