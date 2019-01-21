@@ -35,7 +35,8 @@ SOURCES += \
     node3dfoot.cpp \
     cmdpositionitem.cpp \
     sbmcommandgenerator.cpp \
-    footitem.cpp
+    footitem.cpp \
+    qsbmcameracontroller.cpp
 
 HEADERS += \
         spbmainwindow.h \
@@ -48,7 +49,8 @@ HEADERS += \
     testdata.h \
     cmdpositionitem.h \
     sbmcommandgenerator.h \
-    footitem.h
+    footitem.h \
+    qsbmcameracontroller.h
 
 FORMS += \
         spbmainwindow.ui \

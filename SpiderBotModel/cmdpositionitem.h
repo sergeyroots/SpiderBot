@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QToolButton>
+#include <QLabel>
 
 #include "sbmcommandgenerator.h"
 #include "sbmsettings.h"
@@ -15,20 +16,19 @@ class CmdPositionItem : public QWidget
     Q_PROPERTY(bool removable READ isRemovable WRITE setRemovable)
 public:
     explicit CmdPositionItem(sbmSpiderBotSettings_t *settings, QWidget *parent = nullptr);
-
-    bool isReadOnly() const {
-        return m_readOnly;
-    }
-
-    bool isRemovable() const {
-        return m_removable;
-    }
+    explicit CmdPositionItem(sbmFootAngles_t *angles, QWidget *parent = nullptr);
+    bool isReadOnly() const;
+    bool isRemovable() const;
+    void setName(QString name);
+    CmdPositionItem *clone(void);
 
 private:
     bool m_readOnly;
     bool m_removable;
+    QLabel *lName;
     QToolButton *bRemove;
     sbmFootAngles_t angles;
+    void createUI(void);
 
 signals:
 
