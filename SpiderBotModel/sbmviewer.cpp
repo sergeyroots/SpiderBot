@@ -99,7 +99,7 @@ void SbmViewer::setActiveFoot(uint32_t footIndex) {
 
 void SbmViewer::setFootAngles(uint32_t footIndex, float *angles) {
     if (footIndex < footCount) {
-//        node3DFoots[footIndex]->
+        node3DFoots[footIndex]->setAngles(angles);
     }
 }
 

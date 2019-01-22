@@ -15,6 +15,7 @@ public:
     void translate(QVector3D vector);
     void segmentRotate(uint32_t segment, QVector3D vector);
     void segmentLength(uint32_t segment, float len);
+    void setAngles(float *angles);
     void segmentModelTranslate(uint32_t segment, QVector3D vector);
     void segmentModelRotate(uint32_t segment, QVector3D vector);
     void segmentModelColor(uint32_t segment, QColor color);

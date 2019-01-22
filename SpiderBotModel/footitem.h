@@ -33,6 +33,7 @@ public:
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *);
+    void keyPressEvent(QKeyEvent *event);
 
 signals:
     void onFootAngleChanged(uint32_t segmentCount, float *angles);

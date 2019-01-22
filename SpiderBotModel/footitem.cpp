@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QBoxLayout>
+#include <QKeyEvent>
 
 FootItem::FootItem(uint32_t segmentCount, float *angles, QWidget *parent):
         mainLayout(new QHBoxLayout()),
@@ -98,4 +99,22 @@ bool FootItem::isEditVisible() const {
 
 void FootItem::mouseDoubleClickEvent(QMouseEvent *) {
     setEditVisible(!m_editVisible);
+}
+
+void FootItem::keyPressEvent(QKeyEvent *event) {
+    int key = event->key();
+    if (key == Qt::Key_Up || key == Qt::Key_Down) {
+        QLineEdit *e = dynamic_cast<QLineEdit*>(focusWidget());
+        if (e != nullptr) {
+            float val = e->text().toFloat();
+            if (key == Qt::Key_Up) {
+                e->setText(QString::number(val+1));
+                e->textEdited(e->text());
+            }
+            if (key == Qt::Key_Down) {
+                e->setText(QString::number(val-1));
+                e->textEdited(e->text());
+            }
+        }
+    }
 }

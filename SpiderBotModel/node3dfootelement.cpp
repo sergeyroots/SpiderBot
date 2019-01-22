@@ -11,6 +11,8 @@ Node3DFootElement::Node3DFootElement(sbmFootElement_t *element) :
             modelTransform(new Qt3DCore::QTransform()),
             modelMaterial(new Qt3DExtras::QPhongMaterial()) {
     length = element->length;
+    angleDefault = element->angleDefault;
+    m_angle = angleDefault;
     //model
     if (element->model.stlUrl.isValid()) {
         model->setParent(this);
@@ -136,4 +138,20 @@ bool Node3DFootElement::isVectorEnabled() {
 
 void Node3DFootElement::setModelEnable(bool en) {
     model->setEnabled(en);
+}
+
+float Node3DFootElement::getAbsAngle() const {
+    return m_angle;
+}
+
+float Node3DFootElement::getRelAngle() {
+    return m_angle - angleDefault;
+}
+
+void Node3DFootElement::setRelAngle(float angle) {
+    m_angle = angleDefault + angle;
+}
+
+void Node3DFootElement::setAbsAngle(float angle){
+    m_angle = angle;
 }

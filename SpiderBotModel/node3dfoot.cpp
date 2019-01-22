@@ -32,6 +32,7 @@ void Node3DFoot::updatePositionLastSegments(uint32_t segment) {
     QMatrix4x4 m;
     for (uint32_t i = 0; i< segmentCount; ++i) {
         m.rotate(segmentNodes[i]->getRotation());
+        m.rotate(segmentNodes[i]->getRelAngle(), QVector3D(0,0,1));
         segmentNodes[i]->getTransform()->setMatrix(m);
        m.translate(QVector3D(0, segmentNodes[i]->getLength(), 0));
     }
@@ -43,8 +44,15 @@ void Node3DFoot::segmentRotate(uint32_t segment, QVector3D vector) {
 }
 
 void Node3DFoot::segmentLength(uint32_t segment, float len) {
-    segmentNodes[segment]->setLength(len) ;
+    segmentNodes[segment]->setLength(len);
     updatePositionLastSegments(segment);
+}
+
+void Node3DFoot::setAngles(float *angles) {
+    for (uint32_t i = 0; i< segmentCount; ++i) {
+        segmentNodes[i]->setAbsAngle(angles[i]);
+    }
+    updatePositionLastSegments(0);
 }
 
 void Node3DFoot::segmentModelTranslate(uint32_t segment, QVector3D vector) {
