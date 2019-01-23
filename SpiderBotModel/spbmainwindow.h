@@ -5,6 +5,7 @@
 #include <QListWidgetItem>
 #include "sbmfooteditor.h"
 #include "sbmviewer.h"
+#include "sbmsteptime.h"
 
 namespace Ui {
     class spbMainWindow;
@@ -31,16 +32,15 @@ private slots:
     void on_bCmdPosUp_clicked();
     void on_bCmdPosDown_clicked();
     void on_selectFoot(int32_t footIndex);
+    void on_changeStepTime(uint32_t timeInSteps, double timeInterval);
     void on_bCCodeHex_clicked(bool checked);
-    void on_bStepTime_clicked(bool checked);
-
-    void on_sbStepTimeVal_editingFinished();
 
 private:
     Ui::spbMainWindow *ui;
     SbmFootEditor *footEditor;
     SbmViewer *viewer;
-    double lastIntervalVal;
+    SbmStepTime *sbmStepTime;
+    void updateTotalStepsLabel(void);
 };
 
 #endif // SPBMAINWINDOW_H

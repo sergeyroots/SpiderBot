@@ -3,7 +3,7 @@
 Node3DFoot::Node3DFoot(sbmFoot_t *foot) :
             transform(new Qt3DCore::QTransform()) {
     segmentCount = foot->segmentCount;
-    segmentNodes = (Node3DFootElement**) malloc(sizeof (Node3DFootElement*) * segmentCount);
+    segmentNodes = static_cast<Node3DFootElement**>(malloc(sizeof (Node3DFootElement*) * segmentCount));
     for (uint32_t i = 0; i<segmentCount; ++i) {
         segmentNodes[i] = new Node3DFootElement(&foot->segments[i]);
         segmentNodes[i]->setParent(this);
@@ -68,7 +68,7 @@ void Node3DFoot::segmentModelColor(uint32_t segment, QColor color) {
 }
 
 void Node3DFoot::setVectorEnabled(bool en) {
-    for (int i=0; i< segmentCount; ++i) {
+    for (uint32_t i=0; i< segmentCount; ++i) {
         segmentNodes[i]->setVectorEnabled(en);
     }
 }

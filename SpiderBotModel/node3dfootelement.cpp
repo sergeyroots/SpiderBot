@@ -2,14 +2,14 @@
 
 Node3DFootElement::Node3DFootElement(sbmFootElement_t *element) :
             model(new Qt3DCore::QEntity()),
+            modelMesh(new Qt3DRender::QMesh()),
+            modelMaterial(new Qt3DExtras::QPhongMaterial()),
+            modelTransform(new Qt3DCore::QTransform()),
             vector(new Qt3DCore::QEntity()),
             vectorMesh(new Qt3DExtras::QCylinderMesh()),
             vectorTransform(new Qt3DCore::QTransform()),
             sector(new QSectorPlaneMesh()),
-            transform(new Qt3DCore::QTransform()),
-            modelMesh(new Qt3DRender::QMesh()),
-            modelTransform(new Qt3DCore::QTransform()),
-            modelMaterial(new Qt3DExtras::QPhongMaterial()) {
+            transform(new Qt3DCore::QTransform()) {
     length = element->length;
     angleDefault = element->angleDefault;
     m_angle = angleDefault;

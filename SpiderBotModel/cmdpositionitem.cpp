@@ -7,6 +7,7 @@ CmdPositionItem::CmdPositionItem(sbmSpiderBotSettings_t *settings, QWidget *pare
         QWidget(parent),
         m_readOnly(false),
         m_removable(true),
+        m_stepCount(10),
         lName(new QLabel) {
     uint32_t footCount = settings->footCount;
     angles.footCount = footCount;
@@ -28,6 +29,7 @@ CmdPositionItem::CmdPositionItem(sbmFootAngles_t *anglesSrc, QWidget *parent) :
         QWidget(parent),
         m_readOnly(false),
         m_removable(true),
+        m_stepCount(10),
         lName(new QLabel) {
     uint32_t footCount = anglesSrc->footCount;
     angles.footCount = footCount;
@@ -62,7 +64,12 @@ CmdPositionItem *CmdPositionItem::clone() {
     newItem->setReadOnly(m_readOnly);
     newItem->setRemovable(m_removable);
     newItem->setName(lName->text());
+    newItem->setStepCount(m_stepCount);
     return newItem;
+}
+
+uint32_t CmdPositionItem::getStepCount() const {
+    return m_stepCount;
 }
 
 void CmdPositionItem::createUI() {
@@ -98,4 +105,8 @@ void CmdPositionItem::setRemovable(bool removable) {
 
 sbmFootAngles_t *CmdPositionItem::getAngles() {
     return &angles;
+}
+
+void CmdPositionItem::setStepCount(uint32_t stepCount) {
+    m_stepCount = stepCount;
 }

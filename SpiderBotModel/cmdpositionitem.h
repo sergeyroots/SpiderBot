@@ -14,6 +14,8 @@ class CmdPositionItem : public QWidget
 
     Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly)
     Q_PROPERTY(bool removable READ isRemovable WRITE setRemovable)
+    Q_PROPERTY(uint32_t stepCount READ getStepCount WRITE setStepCount)
+
 public:
     explicit CmdPositionItem(sbmSpiderBotSettings_t *settings, QWidget *parent = nullptr);
     explicit CmdPositionItem(sbmFootAngles_t *angles, QWidget *parent = nullptr);
@@ -21,10 +23,12 @@ public:
     bool isRemovable() const;
     void setName(QString name);
     CmdPositionItem *clone(void);
+    uint32_t getStepCount() const;
 
 private:
     bool m_readOnly;
     bool m_removable;
+    uint32_t m_stepCount;
     QLabel *lName;
     QToolButton *bRemove;
     sbmFootAngles_t angles;
@@ -36,6 +40,7 @@ public slots:
     void setReadOnly(bool readOnly);
     void setRemovable(bool removable);
     sbmFootAngles_t *getAngles(void);
+    void setStepCount(uint32_t stepCount);
 };
 
 #endif // CMDPOSITIONITEM_H

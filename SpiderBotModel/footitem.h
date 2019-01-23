@@ -11,9 +11,13 @@ class FootItem : public QWidget
 {
     Q_OBJECT
     Q_PROPERTY(bool editVisible READ isEditVisible WRITE setEditVisible)
+    Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly)
+
 private:
     uint32_t segmentCount;
     float *angles;
+    bool m_editVisible;
+    bool m_readOnly;
     QHBoxLayout *mainLayout;
     QLabel *lName;
     QLabel *lValues;
@@ -21,15 +25,14 @@ private:
     void updateLabelValues(void);
     QLineEdit *createLineEditor(float *val);
 
-    bool m_editVisible;
-
 public:
     explicit FootItem(uint32_t segmentCount, float *angles, QWidget *parent = nullptr);
+    QSize sizeHint() const;
     void setFootName(QString footName);
     void setFootIndex(int footIndex);
     void setEditVisible(bool visible);
-    QSize sizeHint() const;
-    bool isEditVisible() const;
+    bool isEditVisible() const;    
+    bool isReadOnly() const;
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *);
@@ -39,6 +42,7 @@ signals:
     void onFootAngleChanged(uint32_t segmentCount, float *angles);
 
 public slots:
+    void setReadOnly(bool readOnly);
 };
 
 #endif // FOOTITEM_H

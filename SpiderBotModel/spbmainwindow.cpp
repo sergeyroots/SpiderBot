@@ -27,12 +27,13 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
     viewer->setSbmSettings(&spiderBotSettings);
     ui->vlViewer->addWidget(viewer);
 
-    lastIntervalVal = ui->sbInterval->value();
-
     //ui->bCmdPosAdd->setText("+");
     ui->bCmdPosDel->setIcon(style()->standardIcon(QStyle::SP_TrashIcon));
     ui->bCmdPosUp->setIcon(style()->standardIcon(QStyle::SP_ArrowUp));
     ui->bCmdPosDown->setIcon(style()->standardIcon(QStyle::SP_ArrowDown));
+
+    sbmStepTime = new SbmStepTime(ui->sbInterval->value());
+    ui->vlCommandSettings->insertWidget(3, sbmStepTime);
 
     ui->bPalyPause->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     ui->bStepPlay->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
@@ -41,13 +42,16 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
 
     ui->lwCmdStepList->clear();
     CmdPositionItem *defaultCmdStep = new CmdPositionItem(&spiderBotSettings);
+    defaultCmdStep->setName("Start position");
     defaultCmdStep->setRemovable(false);
     defaultCmdStep->setReadOnly(true);
     addWidgetToList(ui->lwCmdStepList, defaultCmdStep);
     connect(ui->lwCmdStepList, &QListWidget::currentItemChanged, this, &spbMainWindow::on_cmdStepListItemChanged);
     connect(ui->lwFootList, &QListWidget::currentItemChanged, this, &spbMainWindow::on_footListItemChanged);
     ui->lwCmdStepList->setCurrentRow(0);
+
     connect(viewer, &SbmViewer::onSelectFoot, this, &spbMainWindow::on_selectFoot);
+    connect(sbmStepTime, &SbmStepTime::onChangedValue, this, &spbMainWindow::on_changeStepTime);
 }
 
 spbMainWindow::~spbMainWindow() {
@@ -83,33 +87,28 @@ void spbMainWindow::on_bStop_clicked() {
 void spbMainWindow::on_sbInterval_valueChanged(double val) {
     double m = fmod(val, SBM_ITERATION_VAL);
     if (m < 0.001 || m > (SBM_ITERATION_VAL - 0.001)) {
-        qDebug() << val;
-        double stepTimeVal = ui->sbStepTimeVal->value();
-        if (ui->bStepTime->isChecked()) { // ms
-            ui->sbStepTimeVal->setSingleStep(val);
-            ui->sbStepTimeVal->setMinimum(val);
-            ui->sbStepTimeVal->setMaximum(100 * val);
-            ui->sbStepTimeVal->setValue(round(stepTimeVal / val) * val);
-        } else { // steps
-            ui->sbStepTimeVal->setValue(round(stepTimeVal * lastIntervalVal / val));
+        // update other steps
+        double lastInterval = sbmStepTime->getTimeInterval();
+        int stepsCnt = ui->lwCmdStepList->count();
+        int stepCurrentIndex = ui->lwCmdStepList->currentRow();
+        QListWidgetItem *item;
+        CmdPositionItem *cmdStep;
+        for (int i=0; i<stepsCnt; ++i) {
+            if (i != stepCurrentIndex) {
+                item = ui->lwCmdStepList->item(i);
+                cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
+                if (cmdStep != nullptr) {
+                    cmdStep->setStepCount(round(lastInterval * cmdStep->getStepCount() / val));
+                }
+            }
         }
-        lastIntervalVal = val;
+        // update current step
+        sbmStepTime->setTimeInterval(val);
     }
 }
 
 void spbMainWindow::on_sbInterval_editingFinished() {
     ui->sbInterval->setValue(round(ui->sbInterval->value() / SBM_ITERATION_VAL) * SBM_ITERATION_VAL);
-}
-
-void spbMainWindow::on_footListItemChanged(QListWidgetItem *item, QListWidgetItem *itemPeriods) {
-    int row = ui->lwFootList->row(item);
-    FootItem *footItemPeriods = dynamic_cast<FootItem*>(ui->lwFootList->itemWidget(itemPeriods));
-    if (footItemPeriods != nullptr) {
-        footItemPeriods->setEditVisible(false);
-    }
-    if (row >= 0) {
-        viewer->setActiveFoot(static_cast<uint32_t>(row));
-    }
 }
 
 void spbMainWindow::on_cmdStepListItemChanged(QListWidgetItem *item, QListWidgetItem *itemPeriods) {
@@ -121,12 +120,16 @@ void spbMainWindow::on_cmdStepListItemChanged(QListWidgetItem *item, QListWidget
         for (uint32_t i=0; i<angles->footCount; ++i) {
             FootItem *footItem = new FootItem(angles->segmentsCount[i], angles->angles[i]);
             connect(footItem, &FootItem::onFootAngleChanged, this, [this, i](uint32_t segmentCount, float *angles){
+                Q_UNUSED(segmentCount)
                 viewer->setFootAngles(i, angles);
             });
-            footItem->setFootIndex(i+1);
+            footItem->setFootIndex(static_cast<int>(i+1));
+            footItem->setReadOnly(cmdStep->isReadOnly());
             addWidgetToList(ui->lwFootList, footItem);
+            viewer->setFootAngles(i, angles->angles[i]);
         }
         ui->lwFootList->setMaximumHeight(static_cast<int>(30 * angles->footCount)+2);
+        sbmStepTime->setTimeInSteps(cmdStep->getStepCount());
     }
 }
 
@@ -138,6 +141,7 @@ void spbMainWindow::on_bCmdPosAdd_clicked() {
         newCmdStep->setReadOnly(false);
         newCmdStep->setName(QString("step ").append(QString::number(ui->lwCmdStepList->count())));
         addWidgetToList(ui->lwCmdStepList, newCmdStep);
+        updateTotalStepsLabel();
     }
 }
 
@@ -151,6 +155,7 @@ void spbMainWindow::on_bCmdPosDel_clicked() {
             QListWidgetItem *item = ui->lwCmdStepList->takeItem(cRow);
             delete cmdStep;
             delete item;
+            updateTotalStepsLabel();
         }
     }
 }
@@ -191,12 +196,6 @@ void spbMainWindow::on_bCmdPosDown_clicked() {
     }
 }
 
-void spbMainWindow::on_selectFoot(int32_t footIndex) {
-    if (footIndex < ui->lwFootList->count()) {
-        ui->lwFootList->setCurrentRow(footIndex);
-    }
-}
-
 void spbMainWindow::on_bCCodeHex_clicked(bool checked) {
     if (checked) {
         ui->sbCCode->setDisplayIntegerBase(16);
@@ -207,29 +206,44 @@ void spbMainWindow::on_bCCodeHex_clicked(bool checked) {
     }
 }
 
-void spbMainWindow::on_bStepTime_clicked(bool checked) {
-    double interval = ui->sbInterval->value();
-    double currentVal = ui->sbStepTimeVal->value();
-    if (checked) { // ms
-        ui->sbStepTimeVal->setSuffix(" ms");
-        ui->sbStepTimeVal->setDecimals(3);
-        ui->sbStepTimeVal->setSingleStep(interval);
-        ui->sbStepTimeVal->setMinimum(interval);
-        ui->sbStepTimeVal->setMaximum(100 * interval);
-        ui->sbStepTimeVal->setValue(round(currentVal) * interval);
-    } else { // steps
-        ui->sbStepTimeVal->setSuffix(" steps");
-        ui->sbStepTimeVal->setDecimals(0);
-        ui->sbStepTimeVal->setSingleStep(1);
-        ui->sbStepTimeVal->setMinimum(1);
-        ui->sbStepTimeVal->setMaximum(100);
-        ui->sbStepTimeVal->setValue(round(currentVal / interval));
+void spbMainWindow::updateTotalStepsLabel() {
+    uint32_t totalSteps = 1;
+    int cmdStepCnt = ui->lwCmdStepList->count();
+    QListWidgetItem *item;
+    for (int i=1; i < cmdStepCnt; ++i) {
+        item = ui->lwCmdStepList->item(i);
+        CmdPositionItem *cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
+        if (cmdStep != nullptr) {
+            totalSteps += cmdStep->getStepCount();
+        }
+    }
+    ui->lPosition->setText(QString("1/").append(QString::number(totalSteps)));
+}
+
+void spbMainWindow::on_footListItemChanged(QListWidgetItem *item, QListWidgetItem *itemPeriods) {
+    int row = ui->lwFootList->row(item);
+    FootItem *footItemPeriods = dynamic_cast<FootItem*>(ui->lwFootList->itemWidget(itemPeriods));
+    if (footItemPeriods != nullptr) {
+        footItemPeriods->setEditVisible(false);
+    }
+    if (row >= 0) {
+        viewer->setActiveFoot(static_cast<uint32_t>(row));
     }
 }
 
-void spbMainWindow::on_sbStepTimeVal_editingFinished() {
-    if (ui->bStepTime->isChecked()) { // ms
-        double interval = ui->sbInterval->value();
-        ui->sbInterval->setValue(round(ui->sbInterval->value() / interval) * interval);
+void spbMainWindow::on_selectFoot(int32_t footIndex) {
+    if (footIndex < ui->lwFootList->count()) {
+        ui->lwFootList->setCurrentRow(footIndex);
+    }
+}
+
+void spbMainWindow::on_changeStepTime(uint32_t timeInSteps, double timeInterval) {
+    QListWidgetItem *item = ui->lwCmdStepList->currentItem();
+    if (item != nullptr) {
+        CmdPositionItem *cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
+        if (cmdStep != nullptr) {
+            cmdStep->setStepCount(timeInSteps);
+            updateTotalStepsLabel();
+        }
     }
 }

@@ -18,7 +18,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,1,0,0,0">
+       <layout class="QVBoxLayout" name="vlCommandSettings" stretch="0,0,1,0,0">
         <property name="spacing">
          <number>1</number>
         </property>
@@ -176,48 +176,6 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <property name="spacing">
-           <number>2</number>
-          </property>
-          <item>
-           <widget class="QDoubleSpinBox" name="sbStepTimeVal">
-            <property name="suffix">
-             <string> ms</string>
-            </property>
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="minimum">
-             <double>16.384000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>1000.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>16.384000000000000</double>
-            </property>
-            <property name="value">
-             <double>999.423999999999978</double>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="bStepTime">
-            <property name="text">
-             <string>ms</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
            <string>Foots:</string>
@@ -343,7 +301,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">

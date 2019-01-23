@@ -75,8 +75,8 @@ void SbmViewer::setSbmSettings(sbmSpiderBotSettings_t *settings) {
     }
 
     Qt3DRender::QObjectPicker  *picker;
-    node3DFoots = (Node3DFoot**) malloc(sizeof (Node3DFoot**) * footCount);
-    for (int i=0; i<footCount; ++i) {
+    node3DFoots = static_cast<Node3DFoot**>(malloc(sizeof (Node3DFoot**) * footCount));
+    for (uint32_t i=0; i<footCount; ++i) {
         node3DFoots[i] = new Node3DFoot(&settings->foots[i]);
         node3DFoots[i]->setVectorEnabled(false);
         node3DFoots[i]->setParent(rootEntity);
@@ -90,7 +90,7 @@ void SbmViewer::setSbmSettings(sbmSpiderBotSettings_t *settings) {
 
 void SbmViewer::setActiveFoot(uint32_t footIndex) {
     if (footIndex < footCount) {
-        for (int i=0; i < footCount; ++i) {
+        for (uint32_t i=0; i < footCount; ++i) {
             node3DFoots[i]->setVectorEnabled(false);
         }
         node3DFoots[footIndex]->setVectorEnabled(true);
@@ -106,14 +106,16 @@ void SbmViewer::setFootAngles(uint32_t footIndex, float *angles) {
 void SbmViewer::onClickNode3DFoot(Qt3DRender::QPickEvent *event) {
     if (event->button() == Qt3DRender::QPickEvent::LeftButton) {
         int32_t currentIndex = -1;
-        Node3DFoot *nodeFoot3D = (Node3DFoot*)sender()->parent();
-        for (int i=0; i < footCount; ++i) {
-            if (node3DFoots[i] == nodeFoot3D) {
-                currentIndex = i;
+        Node3DFoot *nodeFoot3D = dynamic_cast<Node3DFoot*>(sender()->parent());
+        if (nodeFoot3D != nullptr) {
+            for (uint32_t i=0; i < footCount; ++i) {
+                if (node3DFoots[i] == nodeFoot3D) {
+                    currentIndex = static_cast<int32_t>(i);
+                }
+                node3DFoots[i]->setVectorEnabled(false);
             }
-            node3DFoots[i]->setVectorEnabled(false);
+            nodeFoot3D->setVectorEnabled(true);
         }
-        nodeFoot3D->setVectorEnabled(true);
         emit onSelectFoot(currentIndex);
     }
 }

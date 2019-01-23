@@ -5,11 +5,13 @@
 #include <QKeyEvent>
 
 FootItem::FootItem(uint32_t segmentCount, float *angles, QWidget *parent):
+        m_editVisible(false),
+        m_readOnly(false),
         mainLayout(new QHBoxLayout()),
         lName(new QLabel()),
         lValues(new QLabel()),
-        layoutEditor(new QHBoxLayout()),
-        m_editVisible(false) {
+        layoutEditor(new QHBoxLayout()) {
+    Q_UNUSED(parent)
     this->segmentCount = segmentCount;
     this->angles = angles;
 
@@ -37,6 +39,10 @@ FootItem::FootItem(uint32_t segmentCount, float *angles, QWidget *parent):
     mainLayout->addLayout(layoutEditor, 1);
 
     updateLabelValues();
+}
+
+QSize FootItem::sizeHint() const {
+    return QSize(100, 30);
 }
 
 void FootItem::updateLabelValues(void) {
@@ -89,16 +95,18 @@ void FootItem::setEditVisible(bool visible) {
     }
 }
 
-QSize FootItem::sizeHint() const {
-    return QSize(100, 30);
-}
-
 bool FootItem::isEditVisible() const {
     return m_editVisible;
 }
 
+bool FootItem::isReadOnly() const {
+    return m_readOnly;
+}
+
 void FootItem::mouseDoubleClickEvent(QMouseEvent *) {
-    setEditVisible(!m_editVisible);
+    if (!m_readOnly) {
+        setEditVisible(!m_editVisible);
+    }
 }
 
 void FootItem::keyPressEvent(QKeyEvent *event) {
@@ -117,4 +125,8 @@ void FootItem::keyPressEvent(QKeyEvent *event) {
             }
         }
     }
+}
+
+void FootItem::setReadOnly(bool readOnly) {
+    m_readOnly = readOnly;
 }
