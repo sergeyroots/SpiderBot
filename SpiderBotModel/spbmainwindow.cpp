@@ -19,6 +19,7 @@ void addWidgetToList(QListWidget *list, QWidget *widget) {
 spbMainWindow::spbMainWindow(QWidget *parent) :
         QMainWindow(parent),  ui(new Ui::spbMainWindow) {
     ui->setupUi(this);
+    playTimer = new QTimer();
 
     footEditor = new SbmFootEditor(this);
     connect( ui->actionFootEditor, &QAction::triggered, this, &spbMainWindow::on_openFootEditor);
@@ -52,9 +53,12 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
 
     connect(viewer, &SbmViewer::onSelectFoot, this, &spbMainWindow::on_selectFoot);
     connect(sbmStepTime, &SbmStepTime::onChangedValue, this, &spbMainWindow::on_changeStepTime);
+
+    connect(playTimer, &QTimer::timeout, this, &spbMainWindow::on_playTimerTimeout);
 }
 
 spbMainWindow::~spbMainWindow() {
+    playTimer->stop();
     delete ui;
 }
 
@@ -70,10 +74,29 @@ void spbMainWindow::on_sTiming_sliderMoved(int position) {
 void spbMainWindow::on_bPalyPause_toggled(bool checked) {
     if (checked) {
         ui->bPalyPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
-        ui->bPalyPause->setToolTip("Pause");
+        ui->bPalyPause->setToolTip("Pause");        
+        uint32_t stepCount = static_cast<uint32_t>(ui->lwCmdStepList->count());
+        CmdPositionItem *cmdStep;
+        generator = new SbmCommandGenerator(stepCount);
+        for (uint32_t i=0; i<stepCount; ++i) {
+            cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(ui->lwCmdStepList->item(i)));
+            if (cmdStep != nullptr) {
+                sbmFootStepInfo_t *info = static_cast<sbmFootStepInfo_t*>(malloc(sizeof(sbmFootStepInfo_t)));
+                info->stepTimeIterations = cmdStep->getStepCount();
+                info->angles = cmdStep->getAngles();
+                generator->setStep(i, info);
+            }
+        }
+        generator->generate();
+        playIndex = 0;
+        ui->sTiming->setValue(playIndex);
+        ui->sTiming->setMaximum(generator->getSnapshotCount());
+        playTimer->start(round(ui->sbInterval->value())); //TODO round us!
     } else {
         ui->bPalyPause->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
-        ui->bPalyPause->setToolTip("Play");
+        ui->bPalyPause->setToolTip("Play");        
+        playTimer->stop();
+        delete generator;
     }
 }
 
@@ -128,7 +151,7 @@ void spbMainWindow::on_cmdStepListItemChanged(QListWidgetItem *item, QListWidget
             addWidgetToList(ui->lwFootList, footItem);
             viewer->setFootAngles(i, angles->angles[i]);
         }
-        ui->lwFootList->setMaximumHeight(static_cast<int>(30 * angles->footCount)+2);
+        ui->lwFootList->setMaximumHeight(static_cast<int>(31 * angles->footCount));
         sbmStepTime->setTimeInSteps(cmdStep->getStepCount());
     }
 }
@@ -203,6 +226,23 @@ void spbMainWindow::on_bCCodeHex_clicked(bool checked) {
     } else {
         ui->sbCCode->setDisplayIntegerBase(10);
         ui->sbCCode->setPrefix("");
+    }
+}
+
+void spbMainWindow::on_playTimerTimeout() {
+    if (generator != nullptr && playIndex < generator->getSnapshotCount()) {
+        sbmFootAngles_t *angles = generator->getSnapshot(playIndex++);
+        for(uint32_t i=0; i<angles->footCount; ++i) {
+            viewer->setFootAngles(i, angles->angles[i]);
+        }
+        ui->sTiming->setValue(playIndex);
+        ui->lPosition->setText(QString::number(playIndex+1).append("/").append(QString::number(generator->getSnapshotCount())));
+    } else {
+        if (ui->bRepeat->isChecked()) {
+            playIndex = 0;
+        } else {
+            on_bPalyPause_toggled(false); //TODO:!
+        }
     }
 }
 

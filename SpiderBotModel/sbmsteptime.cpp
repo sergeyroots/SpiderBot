@@ -37,7 +37,6 @@ double SbmStepTime::getTimeInterval() const {
 }
 
 void SbmStepTime::setTimeInSteps(uint32_t timeInSteps) {
-    qDebug() << "setTimeInSteps " << timeInSteps;
     m_timeInSteps = timeInSteps;
     disconnect(sbVal, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &SbmStepTime::on_sbVal_valueChanged);
     if (bUnits->isChecked()) { // ms
@@ -94,6 +93,5 @@ void SbmStepTime::on_sbVal_valueChanged(double val) {
     } else {
         m_timeInSteps = static_cast<uint32_t>(val);
     }
-    qDebug() << "on_sbVal_valueChanged " << m_timeInSteps;
     emit onChangedValue(m_timeInSteps, m_timeInterval);
 }

@@ -6,6 +6,8 @@
 #include "sbmfooteditor.h"
 #include "sbmviewer.h"
 #include "sbmsteptime.h"
+#include <QTimer>
+#include "sbmcommandgenerator.h"
 
 namespace Ui {
     class spbMainWindow;
@@ -34,8 +36,12 @@ private slots:
     void on_selectFoot(int32_t footIndex);
     void on_changeStepTime(uint32_t timeInSteps, double timeInterval);
     void on_bCCodeHex_clicked(bool checked);
+    void on_playTimerTimeout(void);
 
 private:
+    SbmCommandGenerator *generator;
+    QTimer *playTimer;
+    uint32_t playIndex;
     Ui::spbMainWindow *ui;
     SbmFootEditor *footEditor;
     SbmViewer *viewer;
