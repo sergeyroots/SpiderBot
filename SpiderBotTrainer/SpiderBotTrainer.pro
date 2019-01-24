@@ -8,7 +8,7 @@ QT       += core gui 3drender 3dextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = SpiderBotModel
+TARGET = SpiderBotTrainer
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use

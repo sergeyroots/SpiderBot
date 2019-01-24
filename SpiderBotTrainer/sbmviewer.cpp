@@ -30,9 +30,9 @@ SbmViewer::SbmViewer(QWidget *parent) : QWidget(parent) {
 //    camera->lens()->setPerspectiveProjection(60.0f, 16.0f/9.0f, 2.f, -1.0f);
     camera->setProjectionType(Qt3DRender::QCameraLens::PerspectiveProjection);
     camera->setUpVector(QVector3D(.0f, .0f, 1.0f));
-
     camera->setPosition(QVector3D(100, 600,  100.0f));
     camera->setViewCenter(QVector3D(0, 0, 0));
+    camera->setFarPlane(2000.f);
     //camera->rollAboutViewCenter(135);
 
     Qt3DCore::QEntity *lightEntity = new Qt3DCore::QEntity(camera);
@@ -88,12 +88,14 @@ void SbmViewer::setSbmSettings(sbmSpiderBotSettings_t *settings) {
     }
 }
 
-void SbmViewer::setActiveFoot(uint32_t footIndex) {
-    if (footIndex < footCount) {
+void SbmViewer::setActiveFoot(int32_t footIndex) {
+    if (footIndex < static_cast<int32_t>(footCount)) {
         for (uint32_t i=0; i < footCount; ++i) {
             node3DFoots[i]->setVectorEnabled(false);
         }
-        node3DFoots[footIndex]->setVectorEnabled(true);
+        if (footIndex >= 0) {
+            node3DFoots[footIndex]->setVectorEnabled(true);
+        }
     }
 }
 

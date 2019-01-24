@@ -91,11 +91,13 @@ void spbMainWindow::on_bPalyPause_toggled(bool checked) {
         playIndex = 0;
         ui->sTiming->setValue(playIndex);
         ui->sTiming->setMaximum(generator->getSnapshotCount());
+        viewer->setActiveFoot(-1);
         playTimer->start(round(ui->sbInterval->value())); //TODO round us!
     } else {
         ui->bPalyPause->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
         ui->bPalyPause->setToolTip("Play");        
         playTimer->stop();
+        viewer->setActiveFoot(ui->lwFootList->currentRow());
         delete generator;
     }
 }
@@ -266,9 +268,7 @@ void spbMainWindow::on_footListItemChanged(QListWidgetItem *item, QListWidgetIte
     if (footItemPeriods != nullptr) {
         footItemPeriods->setEditVisible(false);
     }
-    if (row >= 0) {
-        viewer->setActiveFoot(static_cast<uint32_t>(row));
-    }
+    viewer->setActiveFoot(row);
 }
 
 void spbMainWindow::on_selectFoot(int32_t footIndex) {

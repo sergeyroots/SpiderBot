@@ -27,6 +27,7 @@ SbmFootViewer::SbmFootViewer(QWidget *parent) : QWidget(parent) {
     camera->setPosition(QVector3D(50, 200,  50.0f));
     camera->setViewCenter(QVector3D(0, 0, 0));
     camera->rollAboutViewCenter(135);
+    camera->setFarPlane(2000.f);
 
     Qt3DCore::QEntity *lightEntity = new Qt3DCore::QEntity(camera);
     Qt3DRender::QPointLight *light = new Qt3DRender::QPointLight(lightEntity);
