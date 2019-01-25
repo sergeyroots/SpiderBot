@@ -3,28 +3,6 @@
 #include <QToolButton>
 #include <QStyle>
 
-CmdPositionItem::CmdPositionItem(sbmSpiderBotSettings_t *settings, QWidget *parent) :
-        QWidget(parent),
-        m_readOnly(false),
-        m_removable(true),
-        m_stepCount(10),
-        lName(new QLabel) {
-    uint32_t footCount = settings->footCount;
-    angles.footCount = footCount;
-    angles.segmentsCount = static_cast<uint32_t*>(malloc(footCount * sizeof(uint32_t)));
-    angles.angles = static_cast<float**>(malloc(footCount * sizeof(float*)));
-    uint32_t segmentCount;
-    for (uint32_t i=0; i<footCount; ++i) {
-        segmentCount = settings->foots[i].segmentCount;
-        angles.segmentsCount[i] = segmentCount;
-        angles.angles[i] = static_cast<float*>(malloc(segmentCount * sizeof(float)));
-        for(uint32_t j=0; j<segmentCount; ++j) {
-            angles.angles[i][j] = settings->foots[i].segments[j].angleDefault;
-        }
-    }
-    createUI();
-}
-
 CmdPositionItem::CmdPositionItem(sbmFootAngles_t *anglesSrc, QWidget *parent) :
         QWidget(parent),
         m_readOnly(false),
@@ -57,6 +35,13 @@ bool CmdPositionItem::isRemovable() const {
 
 void CmdPositionItem::setName(QString name) {
     lName->setText(name);
+}
+
+sbmFootStepInfo_t *CmdPositionItem::getStepInfo() {
+    sbmFootStepInfo_t* info = static_cast<sbmFootStepInfo_t*>(malloc(sizeof(sbmFootStepInfo_t)));
+    info->stepTimeIterations = m_stepCount;
+    info->angles = &angles;
+    return info;
 }
 
 CmdPositionItem *CmdPositionItem::clone() {

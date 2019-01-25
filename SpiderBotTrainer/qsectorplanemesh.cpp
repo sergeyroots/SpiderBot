@@ -14,7 +14,6 @@ float QSectorPlaneMesh::angle() const {
 }
 
 void QSectorPlaneMesh::setRadius(float radius) {
-    qWarning("Floating point comparison needs context sanity check");
     if (qFuzzyCompare(m_radius, radius)) {
         return;
     }
@@ -24,7 +23,6 @@ void QSectorPlaneMesh::setRadius(float radius) {
 }
 
 void QSectorPlaneMesh::setAngle(float angle) {
-    qWarning("Floating point comparison needs context sanity check");
     if (qFuzzyCompare(m_angle, angle)) {
         return;
     }

@@ -3,11 +3,13 @@
 
 #include <QMainWindow>
 #include <QListWidgetItem>
+#include <QTimer>
 #include "sbmfooteditor.h"
 #include "sbmviewer.h"
 #include "sbmsteptime.h"
-#include <QTimer>
 #include "sbmcommandgenerator.h"
+#include "sbmsettings.h"
+#include "projectdata.h"
 
 namespace Ui {
     class spbMainWindow;
@@ -20,8 +22,14 @@ public:
     explicit spbMainWindow(QWidget *parent = nullptr);
     ~spbMainWindow();
 
+protected:
+    void closeEvent(QCloseEvent * event);
+
 private slots:
     void on_openFootEditor();
+    void on_openProject();
+    void on_saveProject();
+    void on_saveAsProject();
     void on_sTiming_sliderMoved(int position);
     void on_bPalyPause_toggled(bool checked);
     void on_bStop_clicked();
@@ -39,6 +47,9 @@ private slots:
     void on_playTimerTimeout(void);
 
 private:
+    QString projectPath;
+    SbmSettings *settings;
+    ProjectData *projectData;
     SbmCommandGenerator *generator;
     QTimer *playTimer;
     uint32_t playIndex;
@@ -47,6 +58,7 @@ private:
     SbmViewer *viewer;
     SbmStepTime *sbmStepTime;
     void updateTotalStepsLabel(void);
+    void loadProject(void);
 };
 
 #endif // SPBMAINWINDOW_H

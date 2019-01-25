@@ -7,6 +7,7 @@
 
 #include "sbmcommandgenerator.h"
 #include "sbmsettings.h"
+#include "projectdata.h"
 
 class CmdPositionItem : public QWidget
 {
@@ -17,11 +18,11 @@ class CmdPositionItem : public QWidget
     Q_PROPERTY(uint32_t stepCount READ getStepCount WRITE setStepCount)
 
 public:
-    explicit CmdPositionItem(sbmSpiderBotSettings_t *settings, QWidget *parent = nullptr);
     explicit CmdPositionItem(sbmFootAngles_t *angles, QWidget *parent = nullptr);
     bool isReadOnly() const;
     bool isRemovable() const;
     void setName(QString name);
+    sbmFootStepInfo_t *getStepInfo(void);
     CmdPositionItem *clone(void);
     uint32_t getStepCount() const;
 

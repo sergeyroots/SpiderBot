@@ -37,14 +37,14 @@ typedef struct {
     sbmFoot_t *foots;
 } sbmSpiderBotSettings_t;
 
-class sbmSettings {
+class SbmSettings {
 
 private:
 //    sbmFoot_t *foots = nullptr;
 //    uint32_t footCount = 0;
 
 public:
-    sbmSettings();
+    SbmSettings();
     void saveToFile(QString fileName, sbmSpiderBotSettings_t* settings);
     sbmSpiderBotSettings_t *loadFromFile(QString fileName);
     void freeSettings(sbmSpiderBotSettings_t* settings);

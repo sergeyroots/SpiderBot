@@ -2,40 +2,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-SbmCommandGenerator::SbmCommandGenerator(uint32_t stepCount):
+SbmCommandGenerator::SbmCommandGenerator():
         snapshotCount(0) {
-    if (stepCount > 1000) {
-        stepCount = 1000;
-    }
-    steps = static_cast<sbmFootStepInfo_t**>(malloc(sizeof(sbmFootStepInfo_t*) * stepCount));
-    this->stepCount = stepCount;
 }
 
 SbmCommandGenerator::~SbmCommandGenerator() {
     freeGenerate();
-    free(steps);
+//    free(steps);
 }
 
-void SbmCommandGenerator::setStep(uint32_t index, sbmFootStepInfo_t *info) {
-    if (index < stepCount) {
-        steps[index] = info;
-    }
-}
-
-SbmCommandGeneratorStatus_t SbmCommandGenerator::generate() {
+SbmCommandGeneratorStatus_t SbmCommandGenerator::generate(ProjectDataCommand *data) {
     if (snapshotCount) {
         freeGenerate();
     }
+    uint32_t stepCount = data->getStepCount();
     if (stepCount == 0) {
         return SBM_GENERATOR_ERR_NO_STEPS;
     }
     // malloc space
     uint32_t snapshotCnt = 1;
     for (uint32_t i=1; i<stepCount; ++i) {
-        if (steps[i] == nullptr) {
+        if (data->getStep(i) == nullptr) {
             return SBM_GENERATOR_ERR_STEP_IS_NULL;
         }
-        snapshotCnt += steps[i]->stepTimeIterations;
+        snapshotCnt += data->getStep(i)->stepTimeIterations;
     }
     snapshots = static_cast<sbmFootAngles_t*>(malloc(sizeof(sbmFootAngles_t) * snapshotCnt));
     if (snapshots == nullptr) {
@@ -52,8 +42,8 @@ SbmCommandGeneratorStatus_t SbmCommandGenerator::generate() {
     float *footAngles;
     sbmFootAngles_t* snapshot = &snapshots[0];
     for (uint32_t i=1; i<stepCount; ++i) {
-        preStep = steps[i-1];
-        nextStep = steps[i];
+        preStep = data->getStep(i-1);
+        nextStep = data->getStep(i);
         footCount = nextStep->angles->footCount;
         iterations = nextStep->stepTimeIterations;
         for (uint32_t ii = 0; ii < iterations; ++ii) {
@@ -77,7 +67,7 @@ SbmCommandGeneratorStatus_t SbmCommandGenerator::generate() {
     }
 
     // last snapshot
-    nextStep = steps[stepCount-1];
+    nextStep = data->getStep(stepCount-1);
     footCount = nextStep->angles->footCount;
     segmentsCount = static_cast<uint32_t*>(malloc(sizeof(uint32_t) * footCount));
     memcpy(segmentsCount, nextStep->angles->segmentsCount, sizeof(uint32_t) * footCount);

@@ -38,7 +38,10 @@ SOURCES += \
     sbmcommandgenerator.cpp \
     footitem.cpp \
     qsbmcameracontroller.cpp \
-    sbmsteptime.cpp
+    sbmsteptime.cpp \
+    projectsavecontroller.cpp \
+    projectdata.cpp \
+    projectdatacommand.cpp
 
 HEADERS += \
         spbmainwindow.h \
@@ -54,7 +57,10 @@ HEADERS += \
     sbmcommandgenerator.h \
     footitem.h \
     qsbmcameracontroller.h \
-    sbmsteptime.h
+    sbmsteptime.h \
+    projectsavecontroller.h \
+    projectdata.h \
+    projectdatacommand.h
 
 FORMS += \
         spbmainwindow.ui \

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <CMD0x10>
+        <interval>81.92</interval>
+        <step>
+            <iterationCount>100</iterationCount>
+            <angles>
+                <foot>90;90;90</foot>
+                <foot>10;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>100</iterationCount>
+            <angles>
+                <foot>90;90;90</foot>
+                <foot>20;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+            </angles>
+        </step>
+    </CMD0x10>
+    <lastActiveCammand>0</lastActiveCammand>
+</project>
