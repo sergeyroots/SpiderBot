@@ -2,6 +2,7 @@
 
 #include <QHBoxLayout>
 #include <QDebug>
+#include <math.h>
 
 SbmStepTime::SbmStepTime(double timeInterval, uint32_t timeInSteps, QWidget *parent) :
         QWidget(parent),
