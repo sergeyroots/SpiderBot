@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <QVector>
+#include <QMetaType>
 
 typedef struct {
     uint32_t footCount;
@@ -19,6 +20,7 @@ class ProjectDataCommand {
 private:
     QVector<sbmFootStepInfo_t*> steps;
     uint8_t commandCode;
+    QString commandName;
     float interval;
 public:
     ProjectDataCommand(uint8_t commandCode = 0x10, float interval = 16.384f);
@@ -30,6 +32,9 @@ public:
     void setCommandCode(uint8_t ccode);
     float getInterval(void);
     void setInterval(float interval);
+    void setCommandName(QString name);
+    QString getCommandName(void);
 };
+Q_DECLARE_METATYPE(ProjectDataCommand*)
 
 #endif // PROJECTDATACOMMAND_H

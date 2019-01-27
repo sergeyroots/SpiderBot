@@ -10,6 +10,7 @@
 #include "footitem.h"
 #include "projectsavecontroller.h"
 #include <QFileDialog>
+#include <QVariant>
 
 #define SBM_ITERATION_VAL   16.384
 
@@ -20,9 +21,7 @@ void addWidgetToList(QListWidget *list, QWidget *widget) {
     list->setItemWidget(listWidgetItem, widget);
 }
 
-static ProjectData *createDefaultProject(sbmSpiderBotSettings_t *settings) {
-    ProjectData *projectData = new ProjectData();
-
+ProjectDataCommand* spbMainWindow::createDefaultProjectCommand(sbmSpiderBotSettings_t *settings) {
     sbmFootStepInfo_t *stepInfo = static_cast<sbmFootStepInfo_t*>(malloc(sizeof(sbmFootStepInfo_t)));
     stepInfo->stepTimeIterations = 100;
     stepInfo->angles = static_cast<sbmFootAngles_t*>(malloc(sizeof(sbmFootAngles_t)));
@@ -41,9 +40,24 @@ static ProjectData *createDefaultProject(sbmSpiderBotSettings_t *settings) {
     }
 
     ProjectDataCommand *cmd = new ProjectDataCommand(0x10, SBM_ITERATION_VAL*5);
+    cmd->setCommandName("default");
+    cmd->setCommandCode(0x10);
+    cmd->setInterval(SBM_ITERATION_VAL * 5);
     cmd->addStep(stepInfo);
-    projectData->addCommand(cmd);
-    return projectData;
+
+    QAction *action = new QAction ("default (0x10)") ;
+    action->setData(QVariant::fromValue(cmd));
+    connect(action, &QAction::triggered, this, [this, action](){
+        ProjectDataCommand *cmd = qvariant_cast<ProjectDataCommand*>(action->data());
+        projectData->setActiveCommand(cmd);
+        loadCommand(cmd);
+        QFont f = action->font();
+        f.setBold(true);
+        action->setFont(f);
+    });
+    ui->menuCommands->insertAction(ui->actionAdd_new_command, action);
+
+    return cmd;
 }
 
 spbMainWindow::spbMainWindow(QWidget *parent) :
@@ -51,7 +65,9 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
         ui(new Ui::spbMainWindow) {
     ui->setupUi(this);
 
-    projectData = createDefaultProject(&spiderBotSettings);
+    projectData = new ProjectData();
+    ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
+    projectData->addCommand(cmd);
 
     playTimer = new QTimer();
 
@@ -60,6 +76,7 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
     connect(ui->actionOpen_project, &QAction::triggered, this, &spbMainWindow::on_openProject);
     connect(ui->actionSave_project, &QAction::triggered, this, &spbMainWindow::on_saveProject);
     connect(ui->actionSave_As_project, &QAction::triggered, this, &spbMainWindow::on_saveAsProject);
+    connect(ui->actionAdd_new_command, &QAction::triggered, this, &spbMainWindow::on_AddNewCommand);
 
     viewer = new SbmViewer(this);
     viewer->setSbmSettings(&spiderBotSettings);
@@ -86,7 +103,7 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
 
     connect(playTimer, &QTimer::timeout, this, &spbMainWindow::on_playTimerTimeout);
 
-    loadProject();
+    loadCommand(cmd);
 }
 
 spbMainWindow::~spbMainWindow() {
@@ -108,7 +125,7 @@ void spbMainWindow::on_openProject() {
     if (!projectPathTmp.isEmpty()) {
         projectPath = projectPathTmp;
         projectData = ProjectSaveController::load(projectPath);
-        loadProject();
+        loadCommand(projectData->getActiveCommand());
     }
 }
 
@@ -127,6 +144,13 @@ void spbMainWindow::on_saveAsProject() {
         projectPath = projectPathTmp;
         ProjectSaveController::save(projectPath, projectData);
     }
+}
+
+void spbMainWindow::on_AddNewCommand() {
+    ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
+    projectData->addCommand(cmd);
+    projectData->setActiveCommand(cmd);
+    loadCommand(cmd);
 }
 
 void spbMainWindow::on_sTiming_sliderMoved(int position) {
@@ -314,11 +338,12 @@ void spbMainWindow::updateTotalStepsLabel() {
     ui->lPosition->setText(QString("1/").append(QString::number(totalSteps)));
 }
 
-void spbMainWindow::loadProject() {
+void spbMainWindow::loadCommand(ProjectDataCommand *cmd) {
     ui->lwCmdStepList->clear();
-    int32_t cmdIndex = projectData->getActiveCommandIndex();
-    ProjectDataCommand *cmd = projectData->getCommand(cmdIndex);
     uint32_t stepCount = cmd->getStepCount();
+    ui->sbCCode->setValue(cmd->getCommandCode());
+    ui->sbInterval->setValue(cmd->getInterval());
+    ui->leCmdName->setText(cmd->getCommandName());
     CmdPositionItem *cmdStepItem;
     sbmFootStepInfo_t *stepInfo;
     for (uint32_t i=0; i<stepCount; ++i) {
@@ -362,4 +387,8 @@ void spbMainWindow::on_changeStepTime(uint32_t timeInSteps, double timeInterval)
             updateTotalStepsLabel();
         }
     }
+}
+
+void spbMainWindow::on_leCmdName_textChanged(const QString &val) {
+    projectData->getActiveCommand()->setCommandName(val);
 }

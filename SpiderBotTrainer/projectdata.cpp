@@ -35,3 +35,10 @@ void ProjectData::setActiveCommand(int32_t activeCommand) {
         m_activeCommand = activeCommand;
     }
 }
+
+void ProjectData::setActiveCommand(ProjectDataCommand *cmd) {
+    int index = commands.indexOf(cmd);
+    if (index >= 0) {
+        m_activeCommand = index;
+    }
+}

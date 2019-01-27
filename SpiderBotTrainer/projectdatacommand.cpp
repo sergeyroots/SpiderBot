@@ -36,3 +36,11 @@ float ProjectDataCommand::getInterval() {
 void ProjectDataCommand::setInterval(float interval) {
     this->interval = interval;
 }
+
+void ProjectDataCommand::setCommandName(QString name) {
+    commandName = name;
+}
+
+QString ProjectDataCommand::getCommandName() {
+    return commandName;
+}

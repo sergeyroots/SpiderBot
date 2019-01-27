@@ -20,6 +20,7 @@ public:
     int32_t getActiveCommandIndex(void);
     ProjectDataCommand *getActiveCommand(void);
     void setActiveCommand(int32_t activeCommand);
+    void setActiveCommand(ProjectDataCommand *cmd);
 };
 
 #endif // PROJECTDATA_H

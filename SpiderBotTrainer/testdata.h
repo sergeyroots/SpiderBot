@@ -55,7 +55,7 @@ sbmFootElement_t foot2Elements[] ={
         },
         37.2f,  //double length;
         0,0,-90.f,   //float rX, rY, rZ;
-        10,  170, 10  //float angleMin, angleMax, angleDefault;
+        10,  170, 90  //float angleMin, angleMax, angleDefault;
     },
     {
         {
