@@ -2,11 +2,12 @@
 <project>
     <CMD0x10>
         <interval>81.92</interval>
+        <name>forward</name>
         <step>
             <iterationCount>100</iterationCount>
             <angles>
                 <foot>90;90;90</foot>
-                <foot>10;90;90</foot>
+                <foot>90;90;90</foot>
                 <foot>90;90;90</foot>
                 <foot>90;90;90</foot>
                 <foot>90;90;90</foot>
@@ -14,10 +15,21 @@
             </angles>
         </step>
         <step>
-            <iterationCount>100</iterationCount>
+            <iterationCount>6</iterationCount>
             <angles>
                 <foot>90;90;90</foot>
-                <foot>20;90;90</foot>
+                <foot>70;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>6</iterationCount>
+            <angles>
+                <foot>90;90;90</foot>
+                <foot>70;90;100</foot>
                 <foot>90;90;90</foot>
                 <foot>90;90;90</foot>
                 <foot>90;90;90</foot>
@@ -25,5 +37,42 @@
             </angles>
         </step>
     </CMD0x10>
-    <lastActiveCammand>0</lastActiveCammand>
+    <CMD0x11>
+        <interval>81.92</interval>
+        <name>backend</name>
+        <step>
+            <iterationCount>7</iterationCount>
+            <angles>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>6</iterationCount>
+            <angles>
+                <foot>90;90;90</foot>
+                <foot>70;90;100</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>6</iterationCount>
+            <angles>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+                <foot>90;90;90</foot>
+            </angles>
+        </step>
+    </CMD0x11>
+    <lastActiveCammand>1</lastActiveCammand>
 </project>

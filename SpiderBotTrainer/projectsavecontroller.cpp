@@ -71,6 +71,12 @@ ProjectDataCommand *parseCommand(QXmlStreamReader *xml) {
                     cmdData->setInterval(xml->text().toFloat());
                 }
             }
+            if (xml->name() == "name") {
+                token = xml->readNext();
+                if (token == QXmlStreamReader::Characters) {
+                    cmdData->setCommandName(xml->text().toString());
+                }
+            }
             if (xml->name() == "step") {
                 cmdData->addStep(parseStep(xml));
             }
@@ -123,6 +129,7 @@ ProjectData *ProjectSaveController::load(QString fineName) {
 void saveCommand(QXmlStreamWriter *xml, ProjectDataCommand *cmd) {
     xml->writeStartElement(QString("CMD0x").append(QString::number(cmd->getCommandCode(), 16)));
         xml->writeTextElement("interval", QString::number(cmd->getInterval()));
+        xml->writeTextElement("name", cmd->getCommandName());
         sbmFootStepInfo_t *info;
         sbmFootAngles_t *angles;
         uint32_t footCount, segmentCount;

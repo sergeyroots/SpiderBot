@@ -145,7 +145,7 @@ void spbMainWindow::on_openProject() {
             ui->menuCommands->insertAction(commandSeparator, action);
         }
         connect(projectData, &ProjectData::activeCommandChange, this, &spbMainWindow::activeCommandChange);
-        projectData->setActiveCommand(0);
+        projectData->setActiveCommand(projectData->getActiveCommandIndex());
     }
 }
 
