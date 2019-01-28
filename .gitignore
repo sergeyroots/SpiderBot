@@ -1,6 +1,6 @@
 SpiderBotTrainer/dist
-SpiderBotTrainer/SpiderBotTrainer.pro.user*
+SpiderBotTrainer/SpiderBotTrainer.pro.user
 *.bak
 SpiderBotFirmware/SpiderBotFirmware/Debug
 SpiderBotFirmware/SpiderBotFirmware/Release
-SpiderBotFirmware/.v
+SpiderBotFirmware/.vs

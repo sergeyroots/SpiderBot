@@ -31,6 +31,7 @@ private slots:
     void on_saveProject();
     void on_saveAsProject();
     void on_AddNewCommand();
+    void on_removeCurrentCommand();
     void on_sTiming_sliderMoved(int position);
     void on_bPalyPause_toggled(bool checked);
     void on_bStop_clicked();
@@ -46,10 +47,12 @@ private slots:
     void on_changeStepTime(uint32_t timeInSteps, double timeInterval);
     void on_bCCodeHex_clicked(bool checked);
     void on_playTimerTimeout(void);
-
     void on_leCmdName_textChanged(const QString &arg1);
+    void activeCommandChange(ProjectDataCommand *cmd, ProjectDataCommand *lastCmd);
+    void on_sbCCode_valueChanged(int arg1);
 
 private:
+    QAction *commandSeparator;
     QString projectPath;
     SbmSettings *settings;
     ProjectData *projectData;

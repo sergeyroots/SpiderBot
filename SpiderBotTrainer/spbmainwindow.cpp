@@ -11,6 +11,7 @@
 #include "projectsavecontroller.h"
 #include <QFileDialog>
 #include <QVariant>
+#include <QMessageBox>
 
 #define SBM_ITERATION_VAL   16.384
 
@@ -50,12 +51,8 @@ ProjectDataCommand* spbMainWindow::createDefaultProjectCommand(sbmSpiderBotSetti
     connect(action, &QAction::triggered, this, [this, action](){
         ProjectDataCommand *cmd = qvariant_cast<ProjectDataCommand*>(action->data());
         projectData->setActiveCommand(cmd);
-        loadCommand(cmd);
-        QFont f = action->font();
-        f.setBold(true);
-        action->setFont(f);
     });
-    ui->menuCommands->insertAction(ui->actionAdd_new_command, action);
+    ui->menuCommands->insertAction(commandSeparator, action);
 
     return cmd;
 }
@@ -65,9 +62,7 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
         ui(new Ui::spbMainWindow) {
     ui->setupUi(this);
 
-    projectData = new ProjectData();
-    ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
-    projectData->addCommand(cmd);
+    commandSeparator = ui->menuCommands->insertSeparator(ui->actionAdd_new_command);
 
     playTimer = new QTimer();
 
@@ -77,6 +72,7 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
     connect(ui->actionSave_project, &QAction::triggered, this, &spbMainWindow::on_saveProject);
     connect(ui->actionSave_As_project, &QAction::triggered, this, &spbMainWindow::on_saveAsProject);
     connect(ui->actionAdd_new_command, &QAction::triggered, this, &spbMainWindow::on_AddNewCommand);
+    connect(ui->actionRemove_current_command, &QAction::triggered, this, &spbMainWindow::on_removeCurrentCommand);
 
     viewer = new SbmViewer(this);
     viewer->setSbmSettings(&spiderBotSettings);
@@ -103,7 +99,12 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
 
     connect(playTimer, &QTimer::timeout, this, &spbMainWindow::on_playTimerTimeout);
 
-    loadCommand(cmd);
+    projectData = new ProjectData();
+    connect(projectData, &ProjectData::activeCommandChange, this, &spbMainWindow::activeCommandChange);
+    ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
+    projectData->addCommand(cmd);
+
+//    loadCommand(cmd);
 }
 
 spbMainWindow::~spbMainWindow() {
@@ -123,9 +124,28 @@ void spbMainWindow::on_openFootEditor() {
 void spbMainWindow::on_openProject() {
     QString projectPathTmp = QFileDialog::getOpenFileName(this, "Open Project", "", "XML Files (*.xml)");
     if (!projectPathTmp.isEmpty()) {
-        projectPath = projectPathTmp;
+        projectPath = projectPathTmp;        
+        disconnect(projectData, &ProjectData::activeCommandChange, this, &spbMainWindow::activeCommandChange);
+        foreach(QAction *action, ui->menuCommands->actions()) {
+            if (action != ui->actionAdd_new_command && action != commandSeparator) {
+                ui->menuCommands->removeAction(action);
+            }
+        }
         projectData = ProjectSaveController::load(projectPath);
-        loadCommand(projectData->getActiveCommand());
+        int cmdCount = projectData->getCommandCount();
+        ProjectDataCommand *cmd;
+        for (int i=0; i<cmdCount; ++i) {
+            cmd = projectData->getCommand(i);
+            QAction *action = new QAction (QString(cmd->getCommandName()).append(" (0x").append(QString::number(cmd->getCommandCode(), 16)).append(")"));
+            action->setData(QVariant::fromValue(cmd));
+            connect(action, &QAction::triggered, this, [this, action](){
+                ProjectDataCommand *cmd = qvariant_cast<ProjectDataCommand*>(action->data());
+                projectData->setActiveCommand(cmd);
+            });
+            ui->menuCommands->insertAction(commandSeparator, action);
+        }
+        connect(projectData, &ProjectData::activeCommandChange, this, &spbMainWindow::activeCommandChange);
+        projectData->setActiveCommand(0);
     }
 }
 
@@ -150,7 +170,30 @@ void spbMainWindow::on_AddNewCommand() {
     ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
     projectData->addCommand(cmd);
     projectData->setActiveCommand(cmd);
-    loadCommand(cmd);
+}
+
+void spbMainWindow::on_removeCurrentCommand() {
+    ProjectDataCommand *cmd = projectData->getActiveCommand();
+    foreach(QAction *action, ui->menuCommands->actions()) {
+        ProjectDataCommand *cmdAction = qvariant_cast<ProjectDataCommand*>(action->data());
+        if (cmdAction == cmd) {
+            if (QMessageBox::information(this,
+                                         "Delete command",
+                                         QString("Delete current command \"").append(action->text()).append("\""),
+                                         QMessageBox::Yes | QMessageBox::No,
+                                         QMessageBox::No)
+                    != QMessageBox::Yes) {
+                return;
+            }
+            ui->menuCommands->removeAction(action);
+            break;
+        }
+    }
+    if (projectData->getCommandCount() < 2) {
+        ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
+        projectData->addCommand(cmd);
+    }
+    projectData->removeCommand(cmd);
 }
 
 void spbMainWindow::on_sTiming_sliderMoved(int position) {
@@ -240,7 +283,7 @@ void spbMainWindow::on_bCmdPosAdd_clicked() {
         newCmdStep->setRemovable(true);
         newCmdStep->setReadOnly(false);
         newCmdStep->setName(QString("step ").append(QString::number(ui->lwCmdStepList->count())));
-        projectData->getCommand(projectData->getActiveCommandIndex())->addStep(newCmdStep->getStepInfo());
+        projectData->getActiveCommand()->addStep(newCmdStep->getStepInfo());
         addWidgetToList(ui->lwCmdStepList, newCmdStep);
         updateTotalStepsLabel();
     }
@@ -390,5 +433,37 @@ void spbMainWindow::on_changeStepTime(uint32_t timeInSteps, double timeInterval)
 }
 
 void spbMainWindow::on_leCmdName_textChanged(const QString &val) {
-    projectData->getActiveCommand()->setCommandName(val);
+    ProjectDataCommand *activeCmd = projectData->getActiveCommand();
+    activeCmd->setCommandName(val);
+    ProjectDataCommand *actionCmd;
+    foreach (QAction *action, ui->menuCommands->actions()) {
+        actionCmd = qvariant_cast<ProjectDataCommand*>(action->data());
+        if (actionCmd == activeCmd) {
+            action->setText(QString(activeCmd->getCommandName()).append(" (0x").append(QString::number(activeCmd->getCommandCode(), 16)).append(")"));
+        }
+    }
+}
+
+void spbMainWindow::activeCommandChange(ProjectDataCommand *cmd, ProjectDataCommand *lastCmd) {
+    loadCommand(cmd);
+    ProjectDataCommand *actionCmd;
+    foreach (QAction *action, ui->menuCommands->actions()) {
+        QFont f = action->font();
+        actionCmd = qvariant_cast<ProjectDataCommand*>(action->data());
+        f.setBold((actionCmd == cmd) ? true : false);
+        action->setFont(f);
+    }
+
+}
+
+void spbMainWindow::on_sbCCode_valueChanged(int val) {
+    ProjectDataCommand *activeCmd = projectData->getActiveCommand();
+    activeCmd->setCommandCode(val);
+    ProjectDataCommand *actionCmd;
+    foreach (QAction *action, ui->menuCommands->actions()) {
+        actionCmd = qvariant_cast<ProjectDataCommand*>(action->data());
+        if (actionCmd == activeCmd) {
+            action->setText(QString(activeCmd->getCommandName()).append(" (0x").append(QString::number(activeCmd->getCommandCode(), 16)).append(")"));
+        }
+    }
 }
