@@ -18,6 +18,7 @@ public:
 private:
     QWidget *container ;
     Qt3DCore::QEntity *rootEntity;
+    Qt3DCore::QEntity *spiderBotEntity;
     Qt3DRender::QCamera *camera;
     Node3DFoot **node3DFoots;
     Qt3DCore::QEntity *node3DBody;

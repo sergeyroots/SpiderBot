@@ -2,26 +2,14 @@
 #include <QHBoxLayout>
 #include <QToolButton>
 #include <QStyle>
+#include <QDebug>
 
-CmdPositionItem::CmdPositionItem(sbmFootAngles_t *anglesSrc, QWidget *parent) :
+CmdPositionItem::CmdPositionItem(sbmFootStepInfo_t *info, QWidget *parent) :
         QWidget(parent),
         m_readOnly(false),
         m_removable(true),
-        m_stepCount(10),
         lName(new QLabel) {
-    uint32_t footCount = anglesSrc->footCount;
-    angles.footCount = footCount;
-    angles.segmentsCount = static_cast<uint32_t*>(malloc(footCount * sizeof(uint32_t)));
-    angles.angles = static_cast<float**>(malloc(footCount * sizeof(float*)));
-    uint32_t segmentCount;
-    for (uint32_t i=0; i<footCount; ++i) {
-        segmentCount = anglesSrc->segmentsCount[i];
-        angles.segmentsCount[i] = segmentCount;
-        angles.angles[i] = static_cast<float*>(malloc(segmentCount * sizeof(float)));
-        for(uint32_t j=0; j<segmentCount; ++j) {
-            angles.angles[i][j] = anglesSrc->angles[i][j];
-        }
-    }
+    this->info = info;
     createUI();
 }
 
@@ -38,23 +26,7 @@ void CmdPositionItem::setName(QString name) {
 }
 
 sbmFootStepInfo_t *CmdPositionItem::getStepInfo() {
-    sbmFootStepInfo_t* info = static_cast<sbmFootStepInfo_t*>(malloc(sizeof(sbmFootStepInfo_t)));
-    info->stepTimeIterations = m_stepCount;
-    info->angles = &angles;
     return info;
-}
-
-CmdPositionItem *CmdPositionItem::clone() {
-    CmdPositionItem *newItem = new CmdPositionItem(&angles);
-    newItem->setReadOnly(m_readOnly);
-    newItem->setRemovable(m_removable);
-    newItem->setName(lName->text());
-    newItem->setStepCount(m_stepCount);
-    return newItem;
-}
-
-uint32_t CmdPositionItem::getStepCount() const {
-    return m_stepCount;
 }
 
 void CmdPositionItem::createUI() {
@@ -64,19 +36,20 @@ void CmdPositionItem::createUI() {
     lName->setText("default position");
     lName->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-    bRemove = new QToolButton();
-    bRemove->setAutoRaise(true);
-    bRemove->setToolTip("Remove");
-    bRemove->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
-    bRemove->setCursor(Qt::PointingHandCursor);
-    bRemove->setVisible(m_removable);
+//    bRemove = new QToolButton();
+//    bRemove->setAutoRaise(true);
+//    bRemove->setToolTip("Remove");
+//    bRemove->setIcon(style()->standardIcon(QStyle::SP_TitleBarCloseButton));
+//    bRemove->setCursor(Qt::PointingHandCursor);
 
-    lName->setMinimumHeight(bRemove->sizeHint().height());
+//    lName->setMinimumHeight(bRemove->sizeHint().height());
+    lName->setMinimumHeight(20);
 
     l->addWidget(lName);
-    l->addWidget(bRemove);
+//    l->addWidget(bRemove);
 
     setLayout(l);
+//    bRemove->setVisible(m_removable);
 }
 
 void CmdPositionItem::setReadOnly(bool readOnly) {
@@ -85,13 +58,5 @@ void CmdPositionItem::setReadOnly(bool readOnly) {
 
 void CmdPositionItem::setRemovable(bool removable) {
     m_removable = removable;
-    bRemove->setVisible(removable);
-}
-
-sbmFootAngles_t *CmdPositionItem::getAngles() {
-    return &angles;
-}
-
-void CmdPositionItem::setStepCount(uint32_t stepCount) {
-    m_stepCount = stepCount;
+//    bRemove->setVisible(removable);
 }

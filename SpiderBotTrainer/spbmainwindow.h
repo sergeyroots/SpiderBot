@@ -64,7 +64,7 @@ private:
     SbmViewer *viewer;
     SbmStepTime *sbmStepTime;
     void updateTotalStepsLabel(void);
-    void loadCommand(ProjectDataCommand *cmd);
+    void loadCommand(ProjectDataCommand *cmd, int selectItem = 0);
     ProjectDataCommand* createDefaultProjectCommand(sbmSpiderBotSettings_t *settings);
 };
 

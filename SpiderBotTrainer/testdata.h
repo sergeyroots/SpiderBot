@@ -30,7 +30,7 @@ sbmFootElement_t foot1Elements[] ={
         },
         45.0,  //double length;
         37, 90, 0,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 127  //float angleMin, angleMax, angleDefault;
     },
     {
         {
@@ -41,7 +41,7 @@ sbmFootElement_t foot1Elements[] ={
         },
         107.0,  //double length;
         0,0,-110,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 81  //float angleMin, angleMax, angleDefault;
     }
 };
 
@@ -66,7 +66,7 @@ sbmFootElement_t foot2Elements[] ={
         },
         45.0,  //double length;
         37, 90, 0,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 127  //float angleMin, angleMax, angleDefault;
     },
     {
         {
@@ -77,7 +77,7 @@ sbmFootElement_t foot2Elements[] ={
         },
         107.0,  //double length;
         0,0,-110,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 81  //float angleMin, angleMax, angleDefault;
     }
 };
 
@@ -102,7 +102,7 @@ sbmFootElement_t foot3Elements[] ={
         },
         45.0,  //double length;
         37, 90, 0,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 127  //float angleMin, angleMax, angleDefault;
     },
     {
         {
@@ -113,7 +113,7 @@ sbmFootElement_t foot3Elements[] ={
         },
         107.0,  //double length;
         0,0,-110,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 81  //float angleMin, angleMax, angleDefault;
     }
 };
 
@@ -138,7 +138,7 @@ sbmFootElement_t foot4Elements[] ={
         },
         45.0,  //double length;
         37, 90, 0,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 127  //float angleMin, angleMax, angleDefault;
     },
     {
         {
@@ -149,7 +149,7 @@ sbmFootElement_t foot4Elements[] ={
         },
         107.0,  //double length;
         0,0,-110,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 81  //float angleMin, angleMax, angleDefault;
     }
 };
 
@@ -174,7 +174,7 @@ sbmFootElement_t foot5Elements[] ={
         },
         45.0,  //double length;
         37, 90, 0,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 127  //float angleMin, angleMax, angleDefault;
     },
     {
         {
@@ -185,7 +185,7 @@ sbmFootElement_t foot5Elements[] ={
         },
         107.0,  //double length;
         0,0,-110,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 81  //float angleMin, angleMax, angleDefault;
     }
 };
 
@@ -210,7 +210,7 @@ sbmFootElement_t foot6Elements[] ={
         },
         45.0,  //double length;
         37, 90, 0,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 127  //float angleMin, angleMax, angleDefault;
     },
     {
         {
@@ -221,7 +221,7 @@ sbmFootElement_t foot6Elements[] ={
         },
         107.0,  //double length;
         0,0,-110,   //float rX, rY, rZ;
-        10,  170, 90  //float angleMin, angleMax, angleDefault;
+        10,  170, 81  //float angleMin, angleMax, angleDefault;
     }
 };
 

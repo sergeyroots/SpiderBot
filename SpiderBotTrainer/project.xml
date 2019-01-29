@@ -1,35 +1,105 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
+    <CMD0x20>
+        <interval>81.92</interval>
+        <name>hello</name>
+        <step>
+            <iterationCount>12</iterationCount>
+            <angles>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>12</iterationCount>
+            <angles>
+                <foot>97;170;170</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>6</iterationCount>
+            <angles>
+                <foot>152;170;170</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>6</iterationCount>
+            <angles>
+                <foot>97;170;170</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>6</iterationCount>
+            <angles>
+                <foot>152;170;170</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>6</iterationCount>
+            <angles>
+                <foot>97;170;170</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+            </angles>
+        </step>
+        <step>
+            <iterationCount>12</iterationCount>
+            <angles>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+            </angles>
+        </step>
+    </CMD0x20>
     <CMD0x10>
         <interval>81.92</interval>
-        <name>forward</name>
+        <name>position90</name>
         <step>
             <iterationCount>100</iterationCount>
             <angles>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
+                <foot>90;127;81</foot>
             </angles>
         </step>
         <step>
-            <iterationCount>6</iterationCount>
+            <iterationCount>37</iterationCount>
             <angles>
                 <foot>90;90;90</foot>
-                <foot>70;90;90</foot>
                 <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-            </angles>
-        </step>
-        <step>
-            <iterationCount>6</iterationCount>
-            <angles>
-                <foot>90;90;90</foot>
-                <foot>70;90;100</foot>
                 <foot>90;90;90</foot>
                 <foot>90;90;90</foot>
                 <foot>90;90;90</foot>
@@ -37,42 +107,5 @@
             </angles>
         </step>
     </CMD0x10>
-    <CMD0x11>
-        <interval>81.92</interval>
-        <name>backend</name>
-        <step>
-            <iterationCount>7</iterationCount>
-            <angles>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-            </angles>
-        </step>
-        <step>
-            <iterationCount>6</iterationCount>
-            <angles>
-                <foot>90;90;90</foot>
-                <foot>70;90;100</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-            </angles>
-        </step>
-        <step>
-            <iterationCount>6</iterationCount>
-            <angles>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-                <foot>90;90;90</foot>
-            </angles>
-        </step>
-    </CMD0x11>
     <lastActiveCammand>1</lastActiveCammand>
 </project>

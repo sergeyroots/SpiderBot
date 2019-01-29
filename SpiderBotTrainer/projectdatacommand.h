@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <QVector>
 #include <QMetaType>
+#include "sbmsettings.h"
+
+#define SBM_ITERATION_VAL   16.384
 
 typedef struct {
     uint32_t footCount;
@@ -27,6 +30,8 @@ public:
     ~ProjectDataCommand();
     void addStep(sbmFootStepInfo_t *info);
     sbmFootStepInfo_t *getStep(uint32_t index);
+    void removeStep(uint32_t index);
+    void swapSteps(int32_t index1, int32_t index2);
     uint32_t getStepCount(void);
     uint8_t getCommandCode(void);
     void setCommandCode(uint8_t ccode);
@@ -34,6 +39,8 @@ public:
     void setInterval(float interval);
     void setCommandName(QString name);
     QString getCommandName(void);
+    static sbmFootStepInfo_t* cloneStep(sbmFootStepInfo_t *info);
+    static ProjectDataCommand* createDefaultProjectCommand(sbmSpiderBotSettings_t *settings);
 };
 Q_DECLARE_METATYPE(ProjectDataCommand*)
 

@@ -13,48 +13,11 @@
 #include <QVariant>
 #include <QMessageBox>
 
-#define SBM_ITERATION_VAL   16.384
-
 void addWidgetToList(QListWidget *list, QWidget *widget) {
     QListWidgetItem *listWidgetItem = new QListWidgetItem(list);
     listWidgetItem->setSizeHint (widget->sizeHint());
     list->addItem(listWidgetItem);
     list->setItemWidget(listWidgetItem, widget);
-}
-
-ProjectDataCommand* spbMainWindow::createDefaultProjectCommand(sbmSpiderBotSettings_t *settings) {
-    sbmFootStepInfo_t *stepInfo = static_cast<sbmFootStepInfo_t*>(malloc(sizeof(sbmFootStepInfo_t)));
-    stepInfo->stepTimeIterations = 100;
-    stepInfo->angles = static_cast<sbmFootAngles_t*>(malloc(sizeof(sbmFootAngles_t)));
-    stepInfo->angles->footCount = settings->footCount;
-    stepInfo->angles->segmentsCount = static_cast<uint32_t*>(malloc(sizeof(uint32_t) * settings->footCount));
-    stepInfo->angles->angles = static_cast<float**>(malloc(sizeof(float*) * settings->footCount));
-    uint32_t segmentCount;
-    for (uint32_t i=0; i<settings->footCount; ++i) {
-        segmentCount = settings->foots[i].segmentCount;
-        stepInfo->angles->segmentsCount[i] = segmentCount;
-        float *angles = static_cast<float*>(malloc(sizeof(float) * segmentCount));
-        stepInfo->angles->angles[i] = angles;
-        for (uint32_t j=0; j<segmentCount; ++j) {
-            angles[j] = settings->foots[i].segments[j].angleDefault;
-        }
-    }
-
-    ProjectDataCommand *cmd = new ProjectDataCommand(0x10, SBM_ITERATION_VAL*5);
-    cmd->setCommandName("default");
-    cmd->setCommandCode(0x10);
-    cmd->setInterval(SBM_ITERATION_VAL * 5);
-    cmd->addStep(stepInfo);
-
-    QAction *action = new QAction ("default (0x10)") ;
-    action->setData(QVariant::fromValue(cmd));
-    connect(action, &QAction::triggered, this, [this, action](){
-        ProjectDataCommand *cmd = qvariant_cast<ProjectDataCommand*>(action->data());
-        projectData->setActiveCommand(cmd);
-    });
-    ui->menuCommands->insertAction(commandSeparator, action);
-
-    return cmd;
 }
 
 spbMainWindow::spbMainWindow(QWidget *parent) :
@@ -103,8 +66,6 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
     connect(projectData, &ProjectData::activeCommandChange, this, &spbMainWindow::activeCommandChange);
     ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
     projectData->addCommand(cmd);
-
-//    loadCommand(cmd);
 }
 
 spbMainWindow::~spbMainWindow() {
@@ -232,16 +193,10 @@ void spbMainWindow::on_sbInterval_valueChanged(double val) {
         double lastInterval = sbmStepTime->getTimeInterval();
         int stepsCnt = ui->lwCmdStepList->count();
         int stepCurrentIndex = ui->lwCmdStepList->currentRow();
-        QListWidgetItem *item;
-        CmdPositionItem *cmdStep;
         for (int i=0; i<stepsCnt; ++i) {
             if (i != stepCurrentIndex) {
-                item = ui->lwCmdStepList->item(i);
-                cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
-                if (cmdStep != nullptr) {
-                    cmdStep->setStepCount(round(lastInterval * cmdStep->getStepCount() / val));
-                    projectData->getActiveCommand()->getStep(i)->stepTimeIterations = round(lastInterval * cmdStep->getStepCount() / val);
-                }
+                uint32_t stepTimeIterations = projectData->getActiveCommand()->getStep(i)->stepTimeIterations;
+                projectData->getActiveCommand()->getStep(i)->stepTimeIterations = round(lastInterval * stepTimeIterations / val);
             }
         }
         // update current step
@@ -255,9 +210,10 @@ void spbMainWindow::on_sbInterval_editingFinished() {
 
 void spbMainWindow::on_cmdStepListItemChanged(QListWidgetItem *item, QListWidgetItem *itemPeriods) {
     Q_UNUSED(itemPeriods);
-    CmdPositionItem *cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
-    if (cmdStep != nullptr) {
-        sbmFootAngles_t *angles = cmdStep->getAngles();
+    int stepIndex = ui->lwCmdStepList->currentRow();
+    sbmFootStepInfo_t *stepInfo = projectData->getActiveCommand()->getStep(stepIndex);
+    if (stepInfo != nullptr) {
+        sbmFootAngles_t *angles = stepInfo->angles;
         ui->lwFootList->clear();
         for (uint32_t i=0; i<angles->footCount; ++i) {
             FootItem *footItem = new FootItem(angles->segmentsCount[i], angles->angles[i]);
@@ -267,76 +223,50 @@ void spbMainWindow::on_cmdStepListItemChanged(QListWidgetItem *item, QListWidget
                 projectData->getActiveCommand()->getStep(ui->lwCmdStepList->currentRow())->angles->angles[i] = angles;
             });
             footItem->setFootIndex(static_cast<int>(i+1));
-            footItem->setReadOnly(cmdStep->isReadOnly());
+            footItem->setReadOnly(stepIndex == 0);
             addWidgetToList(ui->lwFootList, footItem);
             viewer->setFootAngles(i, angles->angles[i]);
         }
         ui->lwFootList->setMaximumHeight(static_cast<int>(31 * angles->footCount));
-        sbmStepTime->setTimeInSteps(cmdStep->getStepCount());
+        sbmStepTime->setTimeInSteps(stepInfo->stepTimeIterations);
     }
 }
 
 void spbMainWindow::on_bCmdPosAdd_clicked() {
-    CmdPositionItem *cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(ui->lwCmdStepList->currentItem()));
-     if (cmdStep != nullptr) {
-        CmdPositionItem *newCmdStep = cmdStep->clone();
-        newCmdStep->setRemovable(true);
-        newCmdStep->setReadOnly(false);
-        newCmdStep->setName(QString("step ").append(QString::number(ui->lwCmdStepList->count())));
-        projectData->getActiveCommand()->addStep(newCmdStep->getStepInfo());
-        addWidgetToList(ui->lwCmdStepList, newCmdStep);
-        updateTotalStepsLabel();
+    sbmFootStepInfo_t *stepInfo = projectData->getActiveCommand()->getStep(ui->lwCmdStepList->currentRow());
+    if (stepInfo != nullptr) {
+        sbmFootStepInfo_t *newStepInfo = ProjectDataCommand::cloneStep(stepInfo);
+        projectData->getActiveCommand()->addStep(newStepInfo);
+        loadCommand(projectData->getActiveCommand());
+        ui->lwCmdStepList->setCurrentRow(projectData->getActiveCommand()->getStepCount()-1);
     }
 }
 
 void spbMainWindow::on_bCmdPosDel_clicked() {
     int cRow = ui->lwCmdStepList->currentRow();
     if (cRow > 0) {
-        QListWidgetItem *item = ui->lwCmdStepList->currentItem();
-        CmdPositionItem *cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
-        if (cmdStep != nullptr) {
-            ui->lwCmdStepList->removeItemWidget(item);
-            QListWidgetItem *item = ui->lwCmdStepList->takeItem(cRow);
-            delete cmdStep;
-            delete item;
-            updateTotalStepsLabel();
+        ProjectDataCommand *cmd = projectData->getActiveCommand();
+        cmd->removeStep(cRow);
+        if (cRow >= cmd->getStepCount()) {
+            --cRow;
         }
+        loadCommand(cmd, cRow);
     }
 }
 
 void spbMainWindow::on_bCmdPosUp_clicked() {
     int cRow = ui->lwCmdStepList->currentRow();
     if (cRow > 1) {
-        QListWidgetItem *item = ui->lwCmdStepList->item(cRow);
-        CmdPositionItem *cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
-        if (cmdStep != nullptr) {
-            ui->lwCmdStepList->removeItemWidget(item);
-            item = ui->lwCmdStepList->takeItem(cRow);
-            cRow--;
-            CmdPositionItem *newCmdStep = cmdStep->clone();
-            delete cmdStep;
-            ui->lwCmdStepList->insertItem(cRow, item);
-            ui->lwCmdStepList->setCurrentRow(cRow);
-            ui->lwCmdStepList->setItemWidget(item, newCmdStep);
-        }
+        projectData->getActiveCommand()->swapSteps(cRow, cRow-1);
+        loadCommand(projectData->getActiveCommand(), cRow-1);
     }
 }
 
 void spbMainWindow::on_bCmdPosDown_clicked() {
     int cRow = ui->lwCmdStepList->currentRow();
     if (cRow < (ui->lwCmdStepList->count() - 1)) {
-        QListWidgetItem *item = ui->lwCmdStepList->item(cRow);
-        CmdPositionItem *cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
-        if (cmdStep != nullptr) {
-            ui->lwCmdStepList->removeItemWidget(item);
-            item = ui->lwCmdStepList->takeItem(cRow);
-            cRow++;
-            CmdPositionItem *newCmdStep = cmdStep->clone();
-            delete cmdStep;
-            ui->lwCmdStepList->insertItem(cRow, item);
-            ui->lwCmdStepList->setCurrentRow(cRow);
-            ui->lwCmdStepList->setItemWidget(item, newCmdStep);
-        }
+        projectData->getActiveCommand()->swapSteps(cRow, cRow+1);
+        loadCommand(projectData->getActiveCommand(), cRow+1);
     }
 }
 
@@ -369,19 +299,15 @@ void spbMainWindow::on_playTimerTimeout() {
 
 void spbMainWindow::updateTotalStepsLabel() {
     uint32_t totalSteps = 1;
-    int cmdStepCnt = ui->lwCmdStepList->count();
-    QListWidgetItem *item;
+    ProjectDataCommand *cmd = projectData->getActiveCommand();
+    int cmdStepCnt = cmd->getStepCount();
     for (int i=1; i < cmdStepCnt; ++i) {
-        item = ui->lwCmdStepList->item(i);
-        CmdPositionItem *cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
-        if (cmdStep != nullptr) {
-            totalSteps += cmdStep->getStepCount();
-        }
+        totalSteps += cmd->getStep(i)->stepTimeIterations;
     }
     ui->lPosition->setText(QString("1/").append(QString::number(totalSteps)));
 }
 
-void spbMainWindow::loadCommand(ProjectDataCommand *cmd) {
+void spbMainWindow::loadCommand(ProjectDataCommand *cmd, int selectItem) {
     ui->lwCmdStepList->clear();
     uint32_t stepCount = cmd->getStepCount();
     ui->sbCCode->setValue(cmd->getCommandCode());
@@ -391,8 +317,7 @@ void spbMainWindow::loadCommand(ProjectDataCommand *cmd) {
     sbmFootStepInfo_t *stepInfo;
     for (uint32_t i=0; i<stepCount; ++i) {
         stepInfo = cmd->getStep(i);
-        cmdStepItem = new CmdPositionItem(stepInfo->angles);
-        cmdStepItem->setStepCount(stepInfo->stepTimeIterations);
+        cmdStepItem = new CmdPositionItem(stepInfo);
         if (i ==0) {
             cmdStepItem->setName("Start position");
             cmdStepItem->setRemovable(false);
@@ -402,7 +327,21 @@ void spbMainWindow::loadCommand(ProjectDataCommand *cmd) {
         }
         addWidgetToList(ui->lwCmdStepList, cmdStepItem);
     }
-    ui->lwCmdStepList->setCurrentRow(0);
+    ui->lwCmdStepList->setCurrentRow(selectItem);
+}
+
+ProjectDataCommand *spbMainWindow::createDefaultProjectCommand(sbmSpiderBotSettings_t *settings) {
+    ProjectDataCommand *cmd = ProjectDataCommand::createDefaultProjectCommand(settings);
+
+    QAction *action = new QAction ("default (0x10)") ;
+    action->setData(QVariant::fromValue(cmd));
+    connect(action, &QAction::triggered, this, [this, action](){
+        ProjectDataCommand *cmd = qvariant_cast<ProjectDataCommand*>(action->data());
+        projectData->setActiveCommand(cmd);
+    });
+    ui->menuCommands->insertAction(commandSeparator, action);
+
+    return cmd;
 }
 
 void spbMainWindow::on_footListItemChanged(QListWidgetItem *item, QListWidgetItem *itemPeriods) {
@@ -421,14 +360,10 @@ void spbMainWindow::on_selectFoot(int32_t footIndex) {
 }
 
 void spbMainWindow::on_changeStepTime(uint32_t timeInSteps, double timeInterval) {
-    QListWidgetItem *item = ui->lwCmdStepList->currentItem();
-    if (item != nullptr) {
-        CmdPositionItem *cmdStep = dynamic_cast<CmdPositionItem*>(ui->lwCmdStepList->itemWidget(item));
-        if (cmdStep != nullptr) {
-            cmdStep->setStepCount(timeInSteps);
-            projectData->getActiveCommand()->getStep(ui->lwCmdStepList->currentRow())->stepTimeIterations = timeInSteps;
-            updateTotalStepsLabel();
-        }
+    sbmFootStepInfo_t *stepInfo = projectData->getActiveCommand()->getStep(ui->lwCmdStepList->currentRow());
+    if (stepInfo != nullptr) {
+        stepInfo->stepTimeIterations = timeInSteps;
+        updateTotalStepsLabel();
     }
 }
 
@@ -453,7 +388,6 @@ void spbMainWindow::activeCommandChange(ProjectDataCommand *cmd, ProjectDataComm
         f.setBold((actionCmd == cmd) ? true : false);
         action->setFont(f);
     }
-
 }
 
 void spbMainWindow::on_sbCCode_valueChanged(int val) {

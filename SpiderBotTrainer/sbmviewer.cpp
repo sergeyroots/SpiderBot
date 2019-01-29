@@ -3,6 +3,139 @@
 #include <Qt3DRender/QObjectPicker>
 #include "qsbmcameracontroller.h"
 
+Qt3DRender::QGeometryRenderer *createLine(const QVector3D& start, const QVector3D& end) {
+    auto *geometry = new Qt3DRender::QGeometry();
+
+    // position vertices (start and end)
+    QByteArray bufferBytes;
+    bufferBytes.resize(3 * 2 * sizeof(float)); // start.x, start.y, start.end + end.x, end.y, end.z
+    float *positions = reinterpret_cast<float*>(bufferBytes.data());
+    *positions++ = start.x();
+    *positions++ = start.y();
+    *positions++ = start.z();
+    *positions++ = end.x();
+    *positions++ = end.y();
+    *positions++ = end.z();
+
+    auto *buf = new Qt3DRender::QBuffer(geometry);
+    buf->setData(bufferBytes);
+
+    auto *positionAttribute = new Qt3DRender::QAttribute(geometry);
+    positionAttribute->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
+    positionAttribute->setVertexBaseType(Qt3DRender::QAttribute::Float);
+    positionAttribute->setVertexSize(3);
+    positionAttribute->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
+    positionAttribute->setBuffer(buf);
+    positionAttribute->setByteStride(3 * sizeof(float));
+    positionAttribute->setCount(2);
+    geometry->addAttribute(positionAttribute); // We add the vertices in the geometry
+
+    // connectivity between vertices
+    QByteArray indexBytes;
+    indexBytes.resize(2 * sizeof(unsigned int)); // start to end
+    unsigned int *indices = reinterpret_cast<unsigned int*>(indexBytes.data());
+    *indices++ = 0;
+    *indices++ = 1;
+
+    auto *indexBuffer = new Qt3DRender::QBuffer(geometry);
+    indexBuffer->setData(indexBytes);
+
+    auto *indexAttribute = new Qt3DRender::QAttribute(geometry);
+    indexAttribute->setVertexBaseType(Qt3DRender::QAttribute::UnsignedInt);
+    indexAttribute->setAttributeType(Qt3DRender::QAttribute::IndexAttribute);
+    indexAttribute->setBuffer(indexBuffer);
+    indexAttribute->setCount(2);
+    geometry->addAttribute(indexAttribute); // We add the indices linking the points in the geometry
+
+    // mesh
+    auto *line = new Qt3DRender::QGeometryRenderer();
+    line->setGeometry(geometry);
+    line->setPrimitiveType(Qt3DRender::QGeometryRenderer::Lines);
+    return line;
+}
+
+Qt3DRender::QGeometryRenderer *createGrid(QSize size, int gSize, int startX, int startY) {
+    startX = startX % size.width();
+    startY = startY % size.height();
+
+    int xLineCount = (size.width() - startX) / gSize + 1;
+    int yLineCount = (size.height() - startY) / gSize + 1;
+
+    uint vertexCount = (xLineCount + yLineCount) * 2;
+
+    int wPos = size.width() / 2;
+    int wNeg = -wPos;
+    int hPos = size.height() / 2;
+    int hNeg = -hPos;
+
+    Qt3DRender::QGeometry *geometry = new Qt3DRender::QGeometry();
+    // position vertices (start and end)
+    QByteArray bufferBytes;
+    bufferBytes.resize(3 * vertexCount * sizeof(float)); // (x + y + z) * pointCount
+    float *positions = reinterpret_cast<float*>(bufferBytes.data());
+    int coords = wNeg + startX;
+    for (int i=0; i<xLineCount; ++i) {
+        *positions++ = wNeg;
+        *positions++ = coords;
+        *positions++ = 0;
+
+        *positions++ = wPos;
+        *positions++ = coords;
+        *positions++ = 0;
+
+        coords += gSize;
+    }
+    coords = hNeg + startY;
+    for (int i=0; i<yLineCount; ++i) {
+        *positions++ = coords;
+        *positions++ = hNeg;
+        *positions++ = 0;
+
+        *positions++ = coords;
+        *positions++ = hPos;
+        *positions++ = 0;
+
+        coords += gSize;
+    }
+
+    Qt3DRender::QBuffer *buf = new Qt3DRender::QBuffer(geometry);
+    buf->setData(bufferBytes);
+
+    auto *positionAttribute = new Qt3DRender::QAttribute(geometry);
+    positionAttribute->setName(Qt3DRender::QAttribute::defaultPositionAttributeName());
+    positionAttribute->setVertexBaseType(Qt3DRender::QAttribute::Float);
+    positionAttribute->setVertexSize(3);
+    positionAttribute->setAttributeType(Qt3DRender::QAttribute::VertexAttribute);
+    positionAttribute->setBuffer(buf);
+    positionAttribute->setByteStride(3 * sizeof(float));
+    positionAttribute->setCount(vertexCount);
+    geometry->addAttribute(positionAttribute); // We add the vertices in the geometry
+
+    // connectivity between vertices
+    QByteArray indexBytes;
+    indexBytes.resize(vertexCount * sizeof(unsigned int)); // start to end
+    unsigned int *indices = reinterpret_cast<unsigned int*>(indexBytes.data());
+    for (uint i =0; i<vertexCount; ++i) {
+        *indices++ = i;
+    }
+
+    auto *indexBuffer = new Qt3DRender::QBuffer(geometry);
+    indexBuffer->setData(indexBytes);
+
+    auto *indexAttribute = new Qt3DRender::QAttribute(geometry);
+    indexAttribute->setVertexBaseType(Qt3DRender::QAttribute::UnsignedInt);
+    indexAttribute->setAttributeType(Qt3DRender::QAttribute::IndexAttribute);
+    indexAttribute->setBuffer(indexBuffer);
+    indexAttribute->setCount(vertexCount);
+    geometry->addAttribute(indexAttribute); // We add the indices linking the points in the geometry
+
+    // mesh
+    Qt3DRender::QGeometryRenderer *grid = new Qt3DRender::QGeometryRenderer();
+    grid->setGeometry(geometry);
+    grid->setPrimitiveType(Qt3DRender::QGeometryRenderer::Lines);
+    return grid;
+}
+
 SbmViewer::SbmViewer(QWidget *parent) : QWidget(parent) {
     node3DBody = nullptr;
     node3DFoots = nullptr;
@@ -25,9 +158,20 @@ SbmViewer::SbmViewer(QWidget *parent) : QWidget(parent) {
     setLayout(l);
 
     rootEntity = new Qt3DCore::QEntity;
+    spiderBotEntity = new Qt3DCore::QEntity(rootEntity);
+    Qt3DCore::QTransform *spiderBot = new Qt3DCore::QTransform();
+    spiderBot->setTranslation(QVector3D(0,0,55));
+    spiderBotEntity->addComponent(spiderBot);
+
+    Qt3DCore::QEntity *groundEntity = new Qt3DCore::QEntity(rootEntity);
+    Qt3DRender::QGeometryRenderer *grid = createGrid({600, 600}, 20, 0, 0);
+    groundEntity->addComponent(grid);
+    Qt3DExtras::QPhongMaterial *groundMaterial = new Qt3DExtras::QPhongMaterial();
+    //groundMaterial->setDiffuse(Qt::gray);
+    groundMaterial->setAmbient(Qt::gray);
+    groundEntity->addComponent(groundMaterial);
 
     camera = view->camera();
-//    camera->lens()->setPerspectiveProjection(60.0f, 16.0f/9.0f, 2.f, -1.0f);
     camera->setProjectionType(Qt3DRender::QCameraLens::PerspectiveProjection);
     camera->setUpVector(QVector3D(.0f, .0f, 1.0f));
     camera->setPosition(QVector3D(100, 600,  100.0f));
@@ -43,8 +187,9 @@ SbmViewer::SbmViewer(QWidget *parent) : QWidget(parent) {
 
     Qt3DExtras::QSbmCameraController *camController = new Qt3DExtras::QSbmCameraController(rootEntity);
     camController->setCamera(camera);
-    camController->setLinearSpeed( 500.0f );
-    camController->setLookSpeed( 100.0f );
+    camController->setLinearSpeed(500.0f);
+    camController->setLookSpeed(100.0f);
+
     view->setRootEntity(rootEntity);
     view->show();
 }
@@ -56,7 +201,7 @@ void SbmViewer::setSbmSettings(sbmSpiderBotSettings_t *settings) {
         node3DBody->removeComponent(bodyMaterial);
         delete node3DBody;
     }
-    node3DBody = new Qt3DCore::QEntity(rootEntity);
+    node3DBody = new Qt3DCore::QEntity(spiderBotEntity);
     bodyMesh = new Qt3DRender::QMesh();
     bodyMaterial = new Qt3DExtras::QPhongMaterial();
 
@@ -79,7 +224,7 @@ void SbmViewer::setSbmSettings(sbmSpiderBotSettings_t *settings) {
     for (uint32_t i=0; i<footCount; ++i) {
         node3DFoots[i] = new Node3DFoot(&settings->foots[i]);
         node3DFoots[i]->setVectorEnabled(false);
-        node3DFoots[i]->setParent(rootEntity);
+        node3DFoots[i]->setParent(spiderBotEntity);
         picker = new Qt3DRender::QObjectPicker(node3DFoots[i]);
         picker->setHoverEnabled(false);
         picker->setEnabled(true);
