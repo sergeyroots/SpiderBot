@@ -345,6 +345,7 @@
     <addaction name="actionOpen_project"/>
     <addaction name="actionSave_project"/>
     <addaction name="actionSave_As_project"/>
+    <addaction name="actionExport_generated_data"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
@@ -423,6 +424,11 @@
   <action name="actionRemove_current_command">
    <property name="text">
     <string>Remove current command</string>
+   </property>
+  </action>
+  <action name="actionExport_generated_data">
+   <property name="text">
+    <string>Export generated data</string>
    </property>
   </action>
  </widget>

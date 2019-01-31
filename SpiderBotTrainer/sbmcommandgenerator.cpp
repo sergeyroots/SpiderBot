@@ -1,6 +1,9 @@
 #include "sbmcommandgenerator.h"
 #include <stdlib.h>
 #include <string.h>
+#include <QDebug>
+#include <QDir>
+#include <QFileDialog>
 
 SbmCommandGenerator::SbmCommandGenerator():
         snapshotCount(0) {
@@ -94,6 +97,84 @@ sbmFootAngles_t *SbmCommandGenerator::getSnapshot(uint32_t index) {
     if (index < snapshotCount) {
         return &snapshots[index];
     }
+    return nullptr;
+}
+
+SbmCommandGeneratorStatus_t SbmCommandGenerator::save(QFile *fileTemplate, QFile *outFile, ProjectData *data) {
+    if (fileTemplate == nullptr || !fileTemplate->exists() || !fileTemplate->fileName().endsWith(".h.t")) {
+        return SBM_GENERATOR_ERR_TEMPLATE;
+    }
+    if (!fileTemplate->open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return SBM_GENERATOR_ERR_IO;
+    }
+    if (!outFile->open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return SBM_GENERATOR_ERR_IO;
+    }
+    QTextStream in(fileTemplate);
+    QString templateString = in.readAll();
+    fileTemplate->close();
+
+    int cmdCount = data->getCommandCount();
+    if (cmdCount == 0) {
+        return SBM_GENERATOR_ERR_NO_STEPS;
+    }
+
+    uint32_t footCount = 0;
+    uint32_t segmentsCount = 0;
+    ProjectDataCommand *cmd;
+    sbmFootAngles_t *angles;
+    uint32_t snapshotCount;
+    QString cmdCode;
+    QString cmdDataArrayOut;
+    QString cmdArrayOut;
+    for (int iCmd=0; iCmd<cmdCount; ++iCmd) {
+        cmd = data->getCommand(iCmd);
+        cmdCode = QString("0x").append(QString::number(cmd->getCommandCode(), 16));
+        QString cmdDataOut = QString("// Command: ").append(cmd->getCommandName()).append("\nstatic const uint8_t cmd_data_").append(cmdCode).append("[] PROGMEM = {\n");
+        generate(cmd);
+        snapshotCount = getSnapshotCount();
+        for (uint32_t iSns=0; iSns<snapshotCount; ++iSns) {
+            cmdDataOut.append("\t");
+            angles = getSnapshot(iSns);
+            footCount = angles->footCount;
+            for (uint32_t iFoot=0; iFoot<footCount; ++iFoot) {
+                cmdDataOut.append("/*").append(QString::number(iFoot+1)).append("*/");
+                segmentsCount = angles->segmentsCount[iFoot];
+                for (uint32_t iSeg=0; iSeg<segmentsCount; ++iSeg) {
+                    cmdDataOut.append("CMD_A(").append(QString::number((int)round(angles->angles[iFoot][iSeg]))).append("), ");
+                }
+            }
+            cmdDataOut.append("\n");
+        }
+        cmdDataOut.append("};\n\n");
+        cmdDataArrayOut.append(cmdDataOut);
+        cmdArrayOut.append("\t{").
+                append(cmdCode).
+                append(", cmd_data_").
+                append(cmdCode).
+                append(", ").append(QString::number(snapshotCount * footCount * segmentsCount)).append(", ").
+                append(QString::number((int)round(cmd->getInterval() / SBM_ITERATION_VAL))).
+                append("},\n");
+    }
+    QString servoArrayOut;
+    for (uint32_t iFoot=0; iFoot<footCount; ++iFoot) {
+        servoArrayOut.append("\t");
+        for (uint32_t iSeg=0; iSeg<segmentsCount; ++iSeg) {
+            servoArrayOut.append("SERVO_").append(QString::number(iFoot*segmentsCount + iSeg + 1)).append(", ");
+        }
+        servoArrayOut.append("\n");
+    }
+    templateString.replace("%%SERVO_ARRAY%%", servoArrayOut);
+    templateString.replace("%%FOOT_COUNT%%", QString::number(footCount));
+    templateString.replace("%%SEGMENT_COUNT%%", QString::number(segmentsCount));
+    templateString.replace("%%CMD_DATA_ARRAYS%%", cmdDataArrayOut);
+    templateString.replace("%%CMD_ARRAYS%%", cmdArrayOut);
+
+    QTextStream out(outFile);
+    out << templateString;
+
+    outFile->close();
+    return SBM_GENERATOR_OK;
 }
 
 void SbmCommandGenerator::freeGenerate() {

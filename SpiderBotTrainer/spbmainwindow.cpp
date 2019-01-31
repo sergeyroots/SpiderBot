@@ -34,6 +34,7 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
     connect(ui->actionOpen_project, &QAction::triggered, this, &spbMainWindow::on_openProject);
     connect(ui->actionSave_project, &QAction::triggered, this, &spbMainWindow::on_saveProject);
     connect(ui->actionSave_As_project, &QAction::triggered, this, &spbMainWindow::on_saveAsProject);
+    connect(ui->actionExport_generated_data, &QAction::triggered, this, &spbMainWindow::on_export_generated_data);
     connect(ui->actionAdd_new_command, &QAction::triggered, this, &spbMainWindow::on_AddNewCommand);
     connect(ui->actionRemove_current_command, &QAction::triggered, this, &spbMainWindow::on_removeCurrentCommand);
 
@@ -124,6 +125,15 @@ void spbMainWindow::on_saveAsProject() {
     if (!projectPathTmp.isEmpty()) {
         projectPath = projectPathTmp;
         ProjectSaveController::save(projectPath, projectData);
+    }
+}
+
+void spbMainWindow::on_export_generated_data() {
+    on_bStop_clicked();
+    QString outFilePath = QFileDialog::getSaveFileName(this, "Save data", "commands.h", "C Header(*.h)");
+    if (!outFilePath.isEmpty()) {
+        QFile templateFile("commands.h.t");
+        generator->save(&templateFile, new QFile(outFilePath), projectData);
     }
 }
 

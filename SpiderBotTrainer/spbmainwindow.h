@@ -30,6 +30,7 @@ private slots:
     void on_openProject();
     void on_saveProject();
     void on_saveAsProject();
+    void on_export_generated_data();
     void on_AddNewCommand();
     void on_removeCurrentCommand();
     void on_sTiming_sliderMoved(int position);
