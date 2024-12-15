@@ -51,7 +51,6 @@ HEADERS += \
     sbmfooteditor.h \
     node3dfootelement.h \
     node3dfoot.h \
-    testdata.h \
     cmdpositionitem.h \
 	qsectorplanemesh.h \
     sbmcommandgenerator.h \

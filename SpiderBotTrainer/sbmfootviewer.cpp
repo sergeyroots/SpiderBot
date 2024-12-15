@@ -63,10 +63,10 @@ void SbmFootViewer::setBody(sbmBody_t *body) {
 
     node3DBody->addComponent(bodyMesh);
     node3DBody->addComponent(bodyMaterial);
-    if (body->stlUrl.isValid()) {
+    if (body->stlUrl->isValid()) {
         bodyMaterial->setDiffuse(body->color);
         //bodyMesh->setMeshName("Body");
-        bodyMesh->setSource(body->stlUrl);
+        bodyMesh->setSource(*body->stlUrl);
     }
 }
 

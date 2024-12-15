@@ -207,10 +207,10 @@ void SbmViewer::setSbmSettings(sbmSpiderBotSettings_t *settings) {
 
     node3DBody->addComponent(bodyMesh);
     node3DBody->addComponent(bodyMaterial);
-    if (settings->body.stlUrl.isValid()) {
-        bodyMaterial->setDiffuse(settings->body.color);
+    if (settings->body->stlUrl->isValid()) {
+        bodyMaterial->setDiffuse(settings->body->color);
         //bodyMesh->setMeshName("Body");
-        bodyMesh->setSource(settings->body.stlUrl);
+        bodyMesh->setSource(*settings->body->stlUrl);
     }
 
     // create foots

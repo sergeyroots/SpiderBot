@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <QStyle>
 
-#include "testdata.h"
+//#include "testdata.h"
 #include <math.h>
 #include "cmdpositionitem.h"
 #include "footitem.h"
@@ -24,6 +24,7 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::spbMainWindow) {
     ui->setupUi(this);
+    createTestData();
 
     commandSeparator = ui->menuCommands->insertSeparator(ui->actionAdd_new_command);
 
@@ -39,7 +40,7 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
     connect(ui->actionRemove_current_command, &QAction::triggered, this, &spbMainWindow::on_removeCurrentCommand);
 
     viewer = new SbmViewer(this);
-    viewer->setSbmSettings(&spiderBotSettings);
+    viewer->setSbmSettings(spiderBotSettings);
     ui->vlViewer->addWidget(viewer);
 
     //ui->bCmdPosAdd->setText("+");
@@ -65,7 +66,7 @@ spbMainWindow::spbMainWindow(QWidget *parent) :
 
     projectData = new ProjectData();
     connect(projectData, &ProjectData::activeCommandChange, this, &spbMainWindow::activeCommandChange);
-    ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
+    ProjectDataCommand *cmd = createDefaultProjectCommand(spiderBotSettings);
     projectData->addCommand(cmd);
 }
 
@@ -79,7 +80,7 @@ void spbMainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void spbMainWindow::on_openFootEditor() {
-    footEditor->setFoot(&body, &foots[0]);
+    footEditor->setFoot(spiderBotSettings->body, &spiderBotSettings->foots[0]);
     footEditor->exec();
 }
 
@@ -132,13 +133,13 @@ void spbMainWindow::on_export_generated_data() {
     on_bStop_clicked();
     QString outFilePath = QFileDialog::getSaveFileName(this, "Save data", "commands.h", "C Header(*.h)");
     if (!outFilePath.isEmpty()) {
-        QFile templateFile("commands.h.t");
-        generator->save(&templateFile, new QFile(outFilePath), projectData);
+        QFile templateFile(QCoreApplication::applicationDirPath() + "/commands.h.t");
+        generator.save(&templateFile, new QFile(outFilePath), projectData);
     }
 }
 
 void spbMainWindow::on_AddNewCommand() {
-    ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
+    ProjectDataCommand *cmd = createDefaultProjectCommand(spiderBotSettings);
     projectData->addCommand(cmd);
     projectData->setActiveCommand(cmd);
 }
@@ -161,7 +162,7 @@ void spbMainWindow::on_removeCurrentCommand() {
         }
     }
     if (projectData->getCommandCount() < 2) {
-        ProjectDataCommand *cmd = createDefaultProjectCommand(&spiderBotSettings);
+        ProjectDataCommand *cmd = createDefaultProjectCommand(spiderBotSettings);
         projectData->addCommand(cmd);
     }
     projectData->removeCommand(cmd);
@@ -174,12 +175,11 @@ void spbMainWindow::on_sTiming_sliderMoved(int position) {
 void spbMainWindow::on_bPalyPause_toggled(bool checked) {
     if (checked) {
         ui->bPalyPause->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
-        ui->bPalyPause->setToolTip("Pause");        
-        generator = new SbmCommandGenerator();
-        generator->generate(projectData->getActiveCommand());
+        ui->bPalyPause->setToolTip("Pause");
+        generator.generate(projectData->getActiveCommand());
         playIndex = 0;
         ui->sTiming->setValue(playIndex);
-        ui->sTiming->setMaximum(generator->getSnapshotCount());
+        ui->sTiming->setMaximum(generator.getSnapshotCount());
         viewer->setActiveFoot(-1);
         playTimer->start(round(ui->sbInterval->value())); //TODO round us!
     } else {
@@ -187,7 +187,6 @@ void spbMainWindow::on_bPalyPause_toggled(bool checked) {
         ui->bPalyPause->setToolTip("Play");        
         playTimer->stop();
         viewer->setActiveFoot(ui->lwFootList->currentRow());
-        delete generator;
     }
 }
 
@@ -291,13 +290,13 @@ void spbMainWindow::on_bCCodeHex_clicked(bool checked) {
 }
 
 void spbMainWindow::on_playTimerTimeout() {
-    if (generator != nullptr && playIndex < generator->getSnapshotCount()) {
-        sbmFootAngles_t *angles = generator->getSnapshot(playIndex++);
+    if (playIndex < generator.getSnapshotCount()) {
+        sbmFootAngles_t *angles = generator.getSnapshot(playIndex++);
         for(uint32_t i=0; i<angles->footCount; ++i) {
             viewer->setFootAngles(i, angles->angles[i]);
         }
         ui->sTiming->setValue(playIndex);
-        ui->lPosition->setText(QString::number(playIndex+1).append("/").append(QString::number(generator->getSnapshotCount())));
+        ui->lPosition->setText(QString::number(playIndex+1).append("/").append(QString::number(generator.getSnapshotCount())));
     } else {
         if (ui->bRepeat->isChecked()) {
             playIndex = 0;
@@ -352,6 +351,135 @@ ProjectDataCommand *spbMainWindow::createDefaultProjectCommand(sbmSpiderBotSetti
     ui->menuCommands->insertAction(commandSeparator, action);
 
     return cmd;
+}
+
+QUrl* spbMainWindow::getSpbModelUrl(QString file) {
+    QString path = QString(QCoreApplication::applicationDirPath() + "/models/").append(file);
+    return new QUrl(QUrl::fromLocalFile(path));
+}
+
+void spbMainWindow::createTestData() {
+    spiderBotSettings = (sbmSpiderBotSettings_t*) malloc(sizeof(sbmSpiderBotSettings_t));
+    if (spiderBotSettings) {
+        spiderBotSettings->footCount = 6;
+        spiderBotSettings->foots = (sbmFoot_t*)malloc(sizeof(sbmFoot_t) * spiderBotSettings->footCount);
+        spiderBotSettings->body = (sbmBody_t*)malloc(sizeof(sbmBody_t));
+        spiderBotSettings->body->color = QColor(10, 200, 200);
+        spiderBotSettings->body->stlUrl = getSpbModelUrl("Body.stl");
+
+        sbmFootElementModel_t segment1 = {
+            getSpbModelUrl("Segment1.stl"),
+            QColor(10, 200, 10),
+            1.7f, 96.f, -80.8f,
+            0, -90, 90
+        };
+        sbmFootElementModel_t segment2 = {
+            getSpbModelUrl("Segment2.stl"),
+            QColor(10, 10, 200),
+            92.7f, 37.4f, 1.6f,
+            0.f, 180.f, 104
+        };
+        sbmFootElementModel_t segment3 = {
+            getSpbModelUrl("Segment3.stl"),
+            QColor(200, 10, 200),
+            -3.f, 92.95f, 1.6f,
+            180,0,-172.5f
+        };
+
+        sbmFootElement_t *seg;
+        sbmFoot_t *foot;
+        // foot1
+        foot = &spiderBotSettings->foots[0];
+        foot->segmentCount = 3;
+        foot->x = 22.6f;
+        foot->y = 68.f;
+        foot->z = 20.f;
+        foot->segments = (sbmFootElement_t*)malloc(sizeof(sbmFootElement_t) * foot->segmentCount);
+
+        // foot1 segment1
+        seg = &foot->segments[0];
+        memcpy(&seg->model, &segment1, sizeof(sbmFootElementModel_t));
+        seg->length = 37.2f;
+        seg->rX = 0;
+        seg->rY = 0;
+        seg->rZ = -60.f;
+        seg->angleMin = 10;
+        seg->angleMax = 170;
+        seg->angleDefault = 90;
+
+        // foot1 segment2
+        seg = &foot->segments[1];
+        memcpy(&seg->model, &segment2, sizeof(sbmFootElementModel_t));
+        seg->length = 45.0f;
+        seg->rX = 37;
+        seg->rY = 90;
+        seg->rZ = 0;
+        seg->angleMin = 10;
+        seg->angleMax = 170;
+        seg->angleDefault = 127;
+
+        // foot1 segment3
+        seg = &foot->segments[2];
+        memcpy(&seg->model, &segment3, sizeof(sbmFootElementModel_t));
+        seg->length = 107.0f;
+        seg->rX = 0;
+        seg->rY = 0;
+        seg->rZ = -110;
+        seg->angleMin = 10;
+        seg->angleMax = 170;
+        seg->angleDefault = 81;
+
+
+        // foot2
+        foot = &spiderBotSettings->foots[1];
+        foot->segmentCount = 3;
+        foot->x = 36.25f;
+        foot->y = 0.f;
+        foot->z = 20.f;
+        foot->segments = (sbmFootElement_t*)malloc(sizeof(sbmFootElement_t) * foot->segmentCount);
+        memcpy(foot->segments, spiderBotSettings->foots[0].segments, sizeof(sbmFootElement_t) * foot->segmentCount);
+        foot->segments[0].rZ = -90.f;
+
+        // foot3
+        foot = &spiderBotSettings->foots[2];
+        foot->segmentCount = 3;
+        foot->x = 22.6f;
+        foot->y = -68.f;
+        foot->z = 20.f;
+        foot->segments = (sbmFootElement_t*)malloc(sizeof(sbmFootElement_t) * foot->segmentCount);
+        memcpy(foot->segments, spiderBotSettings->foots[0].segments, sizeof(sbmFootElement_t) * foot->segmentCount);
+        foot->segments[0].rZ = -120.f;
+
+        // foot4
+        foot = &spiderBotSettings->foots[3];
+        foot->segmentCount = 3;
+        foot->x = -22.5f;
+        foot->y = -68.f;
+        foot->z = 20.f;
+        foot->segments = (sbmFootElement_t*)malloc(sizeof(sbmFootElement_t) * foot->segmentCount);
+        memcpy(foot->segments, spiderBotSettings->foots[0].segments, sizeof(sbmFootElement_t) * foot->segmentCount);
+        foot->segments[0].rZ = 120.f;
+
+        // foot5
+        foot = &spiderBotSettings->foots[4];
+        foot->segmentCount = 3;
+        foot->x = -36.25f;
+        foot->y = 0.f;
+        foot->z = 20.f;
+        foot->segments = (sbmFootElement_t*)malloc(sizeof(sbmFootElement_t) * foot->segmentCount);
+        memcpy(foot->segments, spiderBotSettings->foots[0].segments, sizeof(sbmFootElement_t) * foot->segmentCount);
+        foot->segments[0].rZ = 90.f;
+
+        // foot6
+        foot = &spiderBotSettings->foots[5];
+        foot->segmentCount = 3;
+        foot->x = -22.6f;
+        foot->y = 68.f;
+        foot->z = 20.f;
+        foot->segments = (sbmFootElement_t*)malloc(sizeof(sbmFootElement_t) * foot->segmentCount);
+        memcpy(foot->segments, spiderBotSettings->foots[0].segments, sizeof(sbmFootElement_t) * foot->segmentCount);
+        foot->segments[0].rZ = 60.f;
+    }
 }
 
 void spbMainWindow::on_footListItemChanged(QListWidgetItem *item, QListWidgetItem *itemPeriods) {

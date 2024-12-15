@@ -57,16 +57,19 @@ private:
     QString projectPath;
     SbmSettings *settings;
     ProjectData *projectData;
-    SbmCommandGenerator *generator;
+    SbmCommandGenerator generator;
     QTimer *playTimer;
     uint32_t playIndex;
     Ui::spbMainWindow *ui;
     SbmFootEditor *footEditor;
     SbmViewer *viewer;
     SbmStepTime *sbmStepTime;
+    sbmSpiderBotSettings_t *spiderBotSettings = NULL;
     void updateTotalStepsLabel(void);
     void loadCommand(ProjectDataCommand *cmd, int selectItem = 0);
     ProjectDataCommand* createDefaultProjectCommand(sbmSpiderBotSettings_t *settings);
+    QUrl* getSpbModelUrl(QString file);
+    void createTestData();
 };
 
 #endif // SPBMAINWINDOW_H

@@ -6,7 +6,7 @@
 #include <QColor>
 
 typedef struct {
-    QUrl stlUrl;
+    QUrl *stlUrl;
     QColor color;
     float x, y, z;
     float rX, rY, rZ;
@@ -26,22 +26,20 @@ typedef struct {
     float x, y, z;
 } sbmFoot_t;
 
-typedef  struct {
+typedef struct {
     QColor color;
-    QUrl stlUrl;
+    QUrl *stlUrl;
 }  sbmBody_t;
 
 typedef struct {
     uint32_t footCount;
-    sbmBody_t body;
+    sbmBody_t *body;
     sbmFoot_t *foots;
 } sbmSpiderBotSettings_t;
 
 class SbmSettings {
 
 private:
-//    sbmFoot_t *foots = nullptr;
-//    uint32_t footCount = 0;
 
 public:
     SbmSettings();

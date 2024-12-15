@@ -14,14 +14,14 @@ Node3DFootElement::Node3DFootElement(sbmFootElement_t *element) :
     angleDefault = element->angleDefault;
     m_angle = angleDefault;
     //model
-    if (element->model.stlUrl.isValid()) {
+    if (element->model.stlUrl->isValid()) {
         model->setParent(this);
 
         modelMaterial->setDiffuse(element->model.color);
         model->addComponent(this->modelMaterial);
 
         //modelMesh->setMeshName("Foot1");
-        modelMesh->setSource(element->model.stlUrl);
+        modelMesh->setSource(*element->model.stlUrl);
         model->addComponent(this->modelMesh);
 
         modelTransform->setTranslation(QVector3D(element->model.x, element->model.y, element->model.z));

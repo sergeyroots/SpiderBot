@@ -76,7 +76,7 @@ void SbmFootEditor::on_lwSegments_currentRowChanged(int currentRow) {
         ui->sbRX->setValue(static_cast<double>(segment->model.rX));
         ui->sbRY->setValue(static_cast<double>(segment->model.rY));
         ui->sbRZ->setValue(static_cast<double>(segment->model.rZ));
-        ui->leSTLPath->setText(segment->model.stlUrl.toLocalFile());
+        ui->leSTLPath->setText(segment->model.stlUrl->toLocalFile());
     }
 }
 
@@ -188,9 +188,9 @@ void SbmFootEditor::on_bAddSegment_clicked() {
 void SbmFootEditor::on_bModelPath_clicked() {
     uint32_t segmentIndex = static_cast<uint32_t>(ui->lwSegments->currentRow());
     if (segmentIndex < foot.segmentCount) {
-        QString filePath = QFileDialog::getOpenFileName(this, "Choose segment model", foot.segments[segmentIndex].model.stlUrl.toLocalFile(), "*.stl");
+        QString filePath = QFileDialog::getOpenFileName(this, "Choose segment model", foot.segments[segmentIndex].model.stlUrl->toLocalFile(), "*.stl");
         if (!filePath.isEmpty()) {
-            foot.segments[segmentIndex].model.stlUrl = QUrl::fromLocalFile(filePath);
+            foot.segments[segmentIndex].model.stlUrl = new QUrl(QUrl::fromLocalFile(filePath));
             ui->leSTLPath->setText(filePath);
             footViewer->setFoot(&foot);
         }
